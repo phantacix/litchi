@@ -58,7 +58,7 @@ public class FastJdbc implements Component {
 
         JSONArray jdbcIdList = litchi.currentNode().getJsonArrayOpts("jdbcIds");
         if (jdbcIdList == null) {
-            LOGGER.error("jdbcIds node is null in servers.json.");
+            LOGGER.error("jdbcIds node is null in nodes.json.");
             return;
         }
 
