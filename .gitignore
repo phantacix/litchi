@@ -1,0 +1,14 @@
+.idea/
+.gradle/
+.settings/
+bin/
+logs/
+out/
+target/
+build/
+*.iml
+*.class
+.project
+.classpath
+publish/
+log_data/

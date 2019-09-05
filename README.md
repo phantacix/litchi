@@ -25,6 +25,10 @@ QQ群:**193673074**
 * 框架基于netty设计，轻松定义外部协议
 * 简单的策划配置管理，可实现多条件查询配置
 
+## 构建环境
+* java 8 +
+* gradle 4.0+
+
 ## 第三方引用
 *  `Netty` 宇宙最强的java网络库，可定义各种网络通信方式，本框架中RPC、http、websocket等都基于netty的封装。
 *  `Disruptor` 高性能线程间消息传递库，通过它来实现“消息中心”，跨线程消息传递so easy！
@@ -34,8 +38,9 @@ QQ群:**193673074**
 *  `okhttp3` http client库，真的很ok~
 *  `reflectasm` 反射库，据说性能高...
 
+
 ## 功能与特性
 [传送门](https://github.com/phantacix/litchi/wiki/%E5%8A%9F%E8%83%BD%E4%B8%8E%E7%89%B9%E6%80%A7)
 
 ## 新手引导
-待实现
+待完成

@@ -1,0 +1,53 @@
+import com.sun.org.apache.xalan.internal.xsltc.compiler.Copy
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+tasks.withType(JavaCompile) {
+	options.encoding = "UTF-8"
+}
+
+repositories {
+	mavenLocal()
+	maven{ url 'http://maven.aliyun.com/nexus/content/groups/public/' }
+	jcenter()
+	mavenCentral()
+}
+
+dependencies {
+
+	compile group: 'io.netty', name: 'netty-all', version: '4.1.17.Final'
+	compile group: 'com.lmax', name: 'disruptor', version: '3.3.7'
+	compile group: 'com.esotericsoftware.reflectasm', name: 'reflectasm', version: '1.09'
+	compile group: 'com.alibaba', name: 'fastjson', version: '1.2.58'
+
+	compile group: 'io.protostuff', name: 'protostuff-core', version: '1.6.0'
+	compile group: 'io.protostuff', name: 'protostuff-runtime', version: '1.6.0'
+	compile group: 'com.google.protobuf', name: 'protobuf-java', version: '3.4.0'
+
+	compile group: 'com.squareup.okhttp3', name: 'okhttp', version: '3.9.0'
+	compile group: 'com.squareup.okio', name: 'okio', version: '1.13.0'
+
+	compile group: 'org.slf4j', name: 'log4j-over-slf4j', version: '1.7.25'
+	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+	compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+	compile group: 'ch.qos.logback', name: 'logback-core', version: '1.2.3'
+
+	compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.13'
+	compile group: 'com.zaxxer', name: 'HikariCP', version: '3.3.1'
+	compile group: 'commons-dbutils', name: 'commons-dbutils', version: '1.7'
+
+	compile group: 'redis.clients', name: 'jedis', version: '2.9.0'
+}
+
+jar {
+	manifest {
+		attributes 'Manifest-Version': '1.0'
+		attributes "Class-Path": configurations.compile.collect { it.getName() }.join(' ')
+	}
+}
+
