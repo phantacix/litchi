@@ -1,5 +1,3 @@
-import com.sun.org.apache.xalan.internal.xsltc.compiler.Copy
-
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
