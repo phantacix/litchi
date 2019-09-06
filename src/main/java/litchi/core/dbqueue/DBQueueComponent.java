@@ -21,7 +21,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 默认的DB队列实现
+ * 默认的DB队列实现，定时处理对列数据落地
+ * 请保证同一份数据只有一个实例对象在tableQueue中引用(需要在上层做对象缓存)
  * @author 0x737263
  *
  */
@@ -53,6 +54,8 @@ public class DBQueueComponent implements DBQueue {
 	private byte[] syncLock = new byte[0];
 
 	private long lastSubmitTime = 0L;
+
+	private boolean isConsume = false;
 
 	private Litchi litchi;
 
@@ -129,6 +132,10 @@ public class DBQueueComponent implements DBQueue {
 			return;
 		}
 
+		if (isConsume) {
+			return;
+		}
+
 		List<Table<?>> submitTables = new ArrayList<>();
 
 		for (int i = 0; i < this.tableSubmitNum; i++) {
@@ -143,48 +150,35 @@ public class DBQueueComponent implements DBQueue {
 			return;
 		}
 
-		executor.execute(() -> {
-			List<Table<?>> failTables = new ArrayList<>();
-
+		//TODO 后续改为，按tableName取多个引用对象，批量组合sql进行处理
+		try {
+			isConsume = true;
 			submitTables.forEach(table -> {
-
-				TableInfo info = table.getTableInfo();
 				try {
 					defaultJdbc.update(table);
+				} catch (Exception e) {
+					LOGGER.error("Exception. game:{}", Arrays.toString(table.writeData()));
+					LOGGER.error("Exception. game info:{}", table.getTableInfo());
 
-					// 移除pk键值					
+					dbEntity2File.write(table, table.tableName());
+					LOGGER.error("{}", e);
+				} finally {
+					// 移除pk键值
 					Set<Object> sets = pkMaps.get(table.tableName());
 					if (sets != null) {
 						sets.remove(table.getPkId());
 					}
-				} catch (Exception e) {
-					LOGGER.error("Exception. game:{}", Arrays.toString(table.writeData()));
-					LOGGER.error("Exception. game info:{}", info);
-
-//					if (e instanceof DataAccessException) {
-//						// 数据库访问异常重新加入队列
-//						failTables.add(table);
-//						LOGGER.error("{}", e);
-//					} else {
-//
-//					}
-
-					dbEntity2File.write(table, table.tableName());
-					LOGGER.error("{}", e);
 				}
 			});
+		} catch (Exception ex) {
+			LOGGER.error("{}", ex);
+		} finally {
+			isConsume = false;
+		}
 
-			// 重新提交到队列,有可能造成旧数据覆盖新数据
-			failTables.forEach(table -> {
-				if (!inQueue(table)) {
-					updateQueue(table);
-				}
-			});
-
-			if (DB_QUEUE_LOGGER.isDebugEnabled()) {
-				DB_QUEUE_LOGGER.debug("submit num:{}, fail num:{}", submitTables.size(), failTables.size());
-			}
-		});
+		if (DB_QUEUE_LOGGER.isDebugEnabled()) {
+			DB_QUEUE_LOGGER.debug("submit num:{}", submitTables.size());
+		}
 	}
 
 	/**
