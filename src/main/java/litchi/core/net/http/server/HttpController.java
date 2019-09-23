@@ -83,7 +83,7 @@ public abstract class HttpController {
     	Map<String, String> map = new HashMap<>();
     	for (Entry<String, List<String>> entry : queryParams.entrySet()) {
     		Optional<String> optional = entry.getValue().stream().findFirst();
-    		map.put(entry.getKey(), optional.orElseGet(() -> ""));
+    		map.put(entry.getKey(), optional.orElse(""));
 		}
     	return map;
     }
