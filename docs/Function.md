@@ -1,4 +1,4 @@
-## Litchi引擎功能描述
+## Hello Litchi
 本篇主要介绍引擎相关的组件和功能特性，以及引擎所用到的配置和约定的规则。Litchi通过组件组合方式来创建各种类型服务器。
 
 例如,创建一个`gate-server`网关服务器，那么我们可能会用到 `dispatch`、`route`、`rpc`、`websocket`等组件。
@@ -262,7 +262,8 @@ nodes.json文件是配置所有服务器结点的文件。
 
 良好的`消息分发机制+业务功能划分`能大大降低多线程开发难度。
 
-**(TODO 这里需要一张图来描述消息收发机制)**
+**(请查阅引擎的线程模型图)**
+[引擎线程模型说明](https://raw.githubusercontent.com/phantacix/litchi/master/docs/images/thread_mode.png)
 
 Litchi创建实例时，通过`litchi.setDispatch(...)`来配置该实例需要用到的线程池。
 
@@ -442,15 +443,12 @@ public class GoodsConfig implements ConfigAdapter {
 ## 数据库组件
 
 * 在mysql创建一张表
-
 TODO
 
 * 配置mysql连接信息
-
 TODO
 
 * 创建表映射
-
 TODO
 
 * 访问表

@@ -25,6 +25,10 @@ QQ群:**193673074**
 * 框架基于netty设计，轻松定义外部协议
 * 简单的策划配置管理，可实现多条件查询配置
 
+
+### 线程模型
+![avatar](https://raw.githubusercontent.com/phantacix/litchi/master/docs/images/thread_mode.png)
+
 ## 构建环境
 * java 8 +
 * gradle 4.0+
