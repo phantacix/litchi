@@ -184,7 +184,7 @@ public class Http {
 		return url;
 	}
 
-	private String execute(Request request) {
+	public String execute(Request request) {
 		final Call call = instance().client.newCall(request);
 		Response response = null;
 		try {
@@ -200,8 +200,8 @@ public class Http {
 		}
 		return "";
 	}
-	
-	private InputStream executeAndGetStream(Request request) {
+
+	public InputStream executeAndGetStream(Request request) {
 		final Call call = instance().client.newCall(request);
 		
 		Response response = null;
@@ -215,7 +215,7 @@ public class Http {
 		return null;
 	}
 
-	private void execute(Request request, StringCallback callback) {
+	public void execute(Request request, StringCallback callback) {
 		final Call call = instance().client.newCall(request);
 		call.enqueue(new Callback() {
 
