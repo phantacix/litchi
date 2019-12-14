@@ -3,7 +3,7 @@
 // Copyright(c) 2019 phantaci <phantacix@qq.com>
 // MIT Licensed
 //-------------------------------------------------
-package litchi.core.router.annoation;
+package litchi.core.router.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

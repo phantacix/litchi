@@ -15,7 +15,7 @@ import litchi.core.net.rpc.packet.HeartbeatPacket;
 import litchi.core.net.rpc.packet.RegisterNodePacket;
 import litchi.core.net.rpc.packet.RequestPacket;
 import litchi.core.net.session.NettySession;
-import litchi.core.router.annoation.Route;
+import litchi.core.router.annotation.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

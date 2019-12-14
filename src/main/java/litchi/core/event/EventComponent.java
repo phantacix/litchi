@@ -10,7 +10,7 @@ import litchi.core.Litchi;
 import litchi.core.components.Component;
 import litchi.core.event.annotation.EventReceive;
 import litchi.core.exception.CoreException;
-import litchi.core.router.annoation.Route;
+import litchi.core.router.annotation.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import litchi.core.common.extend.ASMMethod;

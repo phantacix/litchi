@@ -10,8 +10,8 @@ import litchi.core.event.annotation.EventReceive;
 import litchi.core.exception.CoreException;
 import litchi.core.net.rpc.packet.RequestPacket;
 import litchi.core.net.session.NettySession;
-import litchi.core.router.annoation.Handler;
-import litchi.core.router.annoation.Rpc;
+import litchi.core.router.annotation.Handler;
+import litchi.core.router.annotation.Rpc;
 import litchi.core.common.utils.CRCUtils;
 
 /**
@@ -45,7 +45,7 @@ public interface BaseRoute<MSG> {
 
     default long hashByArgsIndex(RequestPacket packet) {
         RouteInfo routeInfo = Litchi.call().route().getRouteInfo(packet.route);
-        if (routeInfo.hashArgsIndex < 0 || routeInfo.parseMethod == null) {
+        if (routeInfo.hashArgsIndex < 0) {
             return packet.uid;
         }
 

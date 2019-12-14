@@ -14,14 +14,20 @@ import litchi.core.net.session.NettySession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
- * 服务器handler路由
+ * protobuf结构的路由
  *
  * @author 0x737263
  */
-public abstract class DefaultHandlerRoute implements BaseRoute<RequestPacket> {
-    protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultHandlerRoute.class);
+public abstract class DefaultProtobufHandlerRoute implements BaseRoute<RequestPacket> {
+    protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultProtobufHandlerRoute.class);
     protected static Logger RPC_LOGGER = LoggerFactory.getLogger("rpc");
+
+    private Map<String, Method> parseMethodMaps = new ConcurrentHashMap<>();
 
     @Override
     public long getThreadHash(NettySession session, RequestPacket packet) {
@@ -35,7 +41,7 @@ public abstract class DefaultHandlerRoute implements BaseRoute<RequestPacket> {
             RouteInfo routeInfo = Litchi.call().route().getRouteInfo(packet.route);
             Object[] parameters = buildParameters(routeInfo, packet);
 
-            if (routeInfo.isVoid) {
+            if (routeInfo.method.isVoid()) {
                 routeInfo.invoke(parameters);
                 return;
             }
@@ -84,12 +90,33 @@ public abstract class DefaultHandlerRoute implements BaseRoute<RequestPacket> {
             Object[] params = new Object[3];
             params[0] = packet.uid;
             params[1] = packet;  //requestPacket
-            params[2] = routeInfo.parseMethod.invoke(null, packet.args[0]);  //pb
+            params[2] = getParseMethod(routeInfo).invoke(null, packet.args[0]);  //pb
             return params;
         } catch (Exception ex) {
             LOGGER.error("", ex);
         }
         return null;
+    }
+
+    /**
+     * 从调用函数的参数列表中获取目标序列化对象的解析函数
+     * @param routeInfo
+     * @return
+     */
+    public Method getParseMethod(RouteInfo routeInfo) {
+        Method parseMethod = parseMethodMaps.get(routeInfo.routeName);
+        if(parseMethod == null) {
+            try {
+                Class<?>[] parameterClazz = routeInfo.method.getJavaMethod().getParameterTypes();
+                Class lastClazz = parameterClazz[parameterClazz.length - 1];
+                parseMethod = lastClazz.getMethod("parseFrom", byte[].class);
+                parseMethodMaps.put(routeInfo.routeName,parseMethod);
+            } catch (Exception ex) {
+                LOGGER.error("",ex);
+            }
+        }
+
+        return parseMethod;
     }
 
 }

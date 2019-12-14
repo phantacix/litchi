@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  * @author 0x737263
  */
 public abstract class DefaultRpcRoute implements BaseRoute<RequestPacket> {
-    static final Logger LOGGER = LoggerFactory.getLogger(DefaultHandlerRoute.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(DefaultProtobufHandlerRoute.class);
     static Logger RPC_LOGGER = LoggerFactory.getLogger("rpc");
 
     @Override
@@ -29,7 +29,7 @@ public abstract class DefaultRpcRoute implements BaseRoute<RequestPacket> {
     public void onReceive(NettySession session, RequestPacket packet) {
         try {
             RouteInfo routeInfo = Litchi.call().route().getRouteInfo(packet.route);
-            if (routeInfo.isVoid) {
+            if (routeInfo.method.isVoid()) {
                 routeInfo.invoke(packet.args);
                 return;
             }
