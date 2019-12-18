@@ -150,6 +150,7 @@ public class HttpServerHandler extends BaseServerHandler {
 			}
 		} catch (Exception ex) {
 			LOGGER.error("{}", ex);
+			writeHttpStatus(ctx, HttpResponseStatus.BAD_REQUEST);
 		}
 	}
 	
