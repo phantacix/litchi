@@ -19,6 +19,4 @@ public interface Dispatcher extends Component {
     void publish(BaseExecutor executor);
 
     boolean isEmpty(int threadId);
-
-    void addThread(String name, int threadId, int threadNum);
 }

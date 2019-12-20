@@ -8,6 +8,7 @@ package litchi.core.dispatch.disruptor;
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.SleepingWaitStrategy;
+import com.lmax.disruptor.WaitStrategy;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 import litchi.core.Litchi;
@@ -21,17 +22,17 @@ public class MessageThread {
 
     private Disruptor<MessageBuffer> disruptor;
 
-    public MessageThread(Litchi litchi, String threadName, int bufferSize) {
-        this(threadName, bufferSize, new MessageEventHandler(litchi));
+    public MessageThread(Litchi litchi, String threadName, int bufferSize, WaitStrategy waitStrategy) {
+        this(threadName, bufferSize, new MessageEventHandler(litchi), waitStrategy);
     }
 
-    public MessageThread(String threadName, int bufferSize, EventHandler<MessageBuffer> handler) {
+    public MessageThread(String threadName, int bufferSize, EventHandler<MessageBuffer> handler, WaitStrategy waitStrategy) {
         this.disruptor = new Disruptor<>(
                 () -> new MessageBuffer(),
                 bufferSize,
                 new NamedThreadFactory(threadName),
                 ProducerType.MULTI,
-                new SleepingWaitStrategy()
+                waitStrategy
         );
 
         disruptor.handleEventsWith(handler);
