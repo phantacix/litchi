@@ -95,7 +95,7 @@ public class JSONDataParser implements DataParser {
 			} catch (Exception e) {
 				LOGGER.error("", e);
 			}
-			
+
 		} else if (type == long.class || type == Long.class) {
 			if (object.equals("")) {
 				return 0L;
@@ -110,6 +110,22 @@ public class JSONDataParser implements DataParser {
 			}
 		} else if (type == String.class) {
 			return object;
+		} else if (type == Map.class) {
+			String str = object.toString();
+			if (str == null || str.equals("")) {
+				return new HashMap<>();
+			}
+			@SuppressWarnings("unchecked")
+			HashMap<Object, Object> map = JSON.parseObject(str, HashMap.class);
+			return map;
+		} else if (type == List.class) {
+			String str = object.toString();
+			if (str == null || str.equals("")) {
+				return new ArrayList<>();
+			}
+			@SuppressWarnings("unchecked")
+			ArrayList<Object> list = JSON.parseObject(str, ArrayList.class);
+			return list;
 		} else if (type == short.class || type == Short.class) {
 			if (object.equals("")) {
 				return (short) 0;
