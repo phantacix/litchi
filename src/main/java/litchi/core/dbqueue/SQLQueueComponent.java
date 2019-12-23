@@ -219,7 +219,7 @@ public class SQLQueueComponent implements DBQueue {
             for (int i = 0; i < this.tableSubmitNum; i++) {
                 Object[] values = queue.poll();
                 if (values == null) {
-                    break;
+                    continue;
                 }
 
                 try {
