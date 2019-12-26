@@ -13,14 +13,14 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.timeout.IdleStateEvent;
 import litchi.core.Litchi;
+import litchi.core.common.utils.StringUtils;
+import litchi.core.dispatch.executor.RequestPacketExecutor;
+import litchi.core.event.sys.UserDisconnectEvent;
 import litchi.core.net.rpc.packet.RequestPacket;
 import litchi.core.net.session.GateSession;
 import litchi.core.net.session.GateSessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import litchi.core.common.utils.StringUtils;
-import litchi.core.dispatch.executor.RequestPacketExecutor;
-import litchi.core.event.sys.UserDisconnectEvent;
 
 @Sharable
 public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
@@ -191,7 +191,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         LOGGER.error("ip:{} {}", ctx.channel().remoteAddress(), cause.getMessage());
         LOGGER.error("", cause);
     }

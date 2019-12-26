@@ -48,6 +48,10 @@ public class WebSocketServerInitializer extends ChannelInitializer<SocketChannel
         pipeline.addLast(new IdleStateHandler(0, 0, 60));
         pipeline.addLast(new WebSocketServerProtocolHandler(WEB_SOCKET_PATH, null, true));
         pipeline.addLast(new WebSocketHandler(litchi));
+
+        for (ChannelHandler handler : handlers) {
+            pipeline.addLast(handler);
+        }
     }
 
     private SslContext createSSLContext() {
