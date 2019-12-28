@@ -9,6 +9,7 @@ import java.util.Arrays;
 
 /**
  * response packet for game client
+ *
  * @author 0x737263
  */
 public class ResponsePacket {
@@ -22,12 +23,14 @@ public class ResponsePacket {
     public ResponsePacket() {
     }
 
-    public ResponsePacket(long uid, short messageId, String route, short statusCode, byte[] data) {
-        this.uid = uid;
-        this.messageId = messageId;
-        this.route = route;
-        this.statusCode = statusCode;
-        this.data = data;
+    public static ResponsePacket valueOf(long uid, short messageId, String route, short statusCode, byte[] data) {
+        ResponsePacket rsp = new ResponsePacket();
+        rsp.uid = uid;
+        rsp.messageId = messageId;
+        rsp.route = route;
+        rsp.statusCode = statusCode;
+        rsp.data = data;
+        return rsp;
     }
 
     @Override

@@ -1,10 +1,8 @@
 package litchi.core;
 
 import com.alibaba.fastjson.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import litchi.core.common.Schedule;
 import litchi.core.common.NodeInfo;
+import litchi.core.common.Schedule;
 import litchi.core.common.extend.ObjectReference;
 import litchi.core.common.logback.LogUtils;
 import litchi.core.common.utils.JsonUtils;
@@ -26,6 +24,8 @@ import litchi.core.net.session.GateSessionService;
 import litchi.core.net.session.NodeSessionService;
 import litchi.core.redis.RedisComponent;
 import litchi.core.router.RouteComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Paths;
 import java.util.*;
@@ -99,9 +99,9 @@ public class Litchi {
         if (this.rootConfigPath == null || this.envPath == null || this.envName == null || nodeId == null) {
             StringBuilder sb = new StringBuilder();
             sb.append("litchi VM options config error...\n");
-            sb.append("-Dlitchi.config      \t配置文件相对根路径\n");
-            sb.append("-Dlitchi.env         \t运行环境名称\n");
-            sb.append("-Dlitchi.nodeid      \t当前服务器的结点id\n");
+            sb.append("-Dlitchi.config      \t 配置文件相对根路径.  eg. -Dlitchi.config=config \n");
+            sb.append("-Dlitchi.env         \t运行环境名称.  eg. -Dlitchi.env=local \n");
+            sb.append("-Dlitchi.nodeid      \t当前服务器的结点id.  eg. -Dlitchi.nodeid=gate-1 \n");
             //sb.append("-Dadmin.resources    \tweb容器资源文件相对路径\n");
             throw new Exception(sb.toString());
         }
@@ -173,11 +173,6 @@ public class Litchi {
         this.componentOrderList.add(feature);
         return this;
     }
-
-//    public litchi setRoute() {
-//        this.addComponent(new RouteComponent(this));
-//        return this;
-//    }
 
     public Litchi setDataConfig() {
         this.setDataConfig(new StorageDataConfig(this));
@@ -287,15 +282,6 @@ public class Litchi {
 
     private void shutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-
-            /**
-             * shutdownHook未处理完善
-             * 1、集成maintain状态功能
-             * 2、关闭对外server服务，http、websocket
-             * 3、断开rpc client服务
-             * 4、关闭rpc server服务
-             * 5、停服、进程消失
-             */
 
             long stopTime = System.currentTimeMillis();
 
@@ -416,8 +402,8 @@ public class Litchi {
         return this.currentNode;
     }
 
-    public NodeInfo getServerInfo(String serverType, String serverId) {
-        Collection<NodeInfo> serverInfoCollection = getServerInfoList(serverType);
+    public NodeInfo getNodeInfo(String serverType, String serverId) {
+        Collection<NodeInfo> serverInfoCollection = getNodeInfoList(serverType);
         for (NodeInfo serverInfo : serverInfoCollection) {
             if (serverInfo.getNodeId().equals(serverId)) {
                 return serverInfo;
@@ -426,7 +412,7 @@ public class Litchi {
         return null;
     }
 
-    public List<NodeInfo> getServerInfoList(String serverType) {
+    public List<NodeInfo> getNodeInfoList(String serverType) {
         return this.nodesInfo.getOrDefault(serverType, new ArrayList<>());
     }
 
@@ -459,5 +445,4 @@ public class Litchi {
         }
         return this.schedule;
     }
-
 }

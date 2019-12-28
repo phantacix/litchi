@@ -192,7 +192,7 @@ public class RpcClientComponent extends NetComponent {
     public void afterStart() {
         //add node
         for (String nodeType : nodeTypes) {
-            Collection<NodeInfo> infoList = litchi.getServerInfoList(nodeType);
+            Collection<NodeInfo> infoList = litchi.getNodeInfoList(nodeType);
             for (NodeInfo info : infoList) {
                 Map<String, NettyRpcClient> clientMaps = this.clientMaps.getOrDefault(info.getNodeType(), new HashMap<>());
                 if (clientMaps.isEmpty()) {
