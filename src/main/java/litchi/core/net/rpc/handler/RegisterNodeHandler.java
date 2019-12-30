@@ -11,11 +11,11 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.Attribute;
 import litchi.core.Litchi;
+import litchi.core.event.sys.RpcDisconnectEvent;
 import litchi.core.net.rpc.packet.RegisterNodePacket;
+import litchi.core.net.session.NettySession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import litchi.core.event.sys.RpcDisconnectEvent;
-import litchi.core.net.session.NettySession;
 
 /**
  * register node server handler
@@ -58,8 +58,8 @@ public class RegisterNodeHandler extends BaseChannelHandler<RegisterNodePacket> 
             // rpc node disconnect event
             NettySession session = litchi.nodeSessionService().getSession(sessionId);
             String nodeType = session.channel().attr(NettySession.FROM_NODE_TYPE).get();
-            String serverId = session.channel().attr(NettySession.FROM_NODE_ID).get();
-            litchi.event().post(new RpcDisconnectEvent(nodeType, serverId));
+            String nodeId = session.channel().attr(NettySession.FROM_NODE_ID).get();
+            litchi.event().post(new RpcDisconnectEvent(nodeType, nodeId));
         } finally {
             //remove
             litchi.nodeSessionService().removeSession(sessionId);

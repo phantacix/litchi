@@ -20,18 +20,10 @@ import java.lang.annotation.Target;
 public @interface Rpc {
 
     /**
-     * 指定该方法的派发类型
+     * 默认读取@Route注解的defaultThreadId()
+     * 否则以该值为准
      *
      * @return
      */
     int threadId() default -1;
-
-    /**
-     * 派发时以调用方法的第x个参数的索引做为hash值
-     * 默认为方法参数的第0个
-     *
-     * @return
-     */
-    int hashArgsIndex() default 0;
-
 }

@@ -22,7 +22,7 @@ public abstract class DefaultRpcRoute implements BaseRoute<RequestPacket> {
 
     @Override
     public long getThreadHash(NettySession session, RequestPacket packet) {
-        return hashByArgsIndex(packet);
+        return packet.uid;
     }
 
     @Override

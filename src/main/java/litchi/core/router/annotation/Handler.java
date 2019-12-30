@@ -34,14 +34,6 @@ public @interface Handler {
     int threadId() default -1;
 
     /**
-     * 根据方法的第x个索引参数的来进行hash
-     * 默认为取index = 0
-     *
-     * @return
-     */
-    int hashArgsIndex() default 0;
-
-    /**
      * 是否需要登陆验证
      *
      * @return

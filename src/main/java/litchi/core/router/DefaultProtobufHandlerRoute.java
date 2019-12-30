@@ -31,7 +31,7 @@ public abstract class DefaultProtobufHandlerRoute implements BaseRoute<RequestPa
 
     @Override
     public long getThreadHash(NettySession session, RequestPacket packet) {
-        return hashByArgsIndex(packet);
+        return packet.uid;
     }
 
     @Override
