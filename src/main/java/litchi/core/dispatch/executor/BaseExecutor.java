@@ -6,7 +6,6 @@
 package litchi.core.dispatch.executor;
 
 import litchi.core.dispatch.disruptor.MessageThread;
-import litchi.core.dispatch.disruptor.MessageThread;
 
 import java.util.List;
 

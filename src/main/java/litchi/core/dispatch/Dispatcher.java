@@ -6,7 +6,6 @@
 package litchi.core.dispatch;
 
 import litchi.core.components.Component;
-import litchi.core.components.Component;
 import litchi.core.dispatch.executor.BaseExecutor;
 
 /**

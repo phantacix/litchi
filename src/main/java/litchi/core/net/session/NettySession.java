@@ -5,12 +5,9 @@
 //-------------------------------------------------
 package litchi.core.net.session;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
-import litchi.core.common.utils.CRCUtils;
 import litchi.core.common.utils.StringUtils;
 import litchi.core.net.rpc.packet.RpcPacket;
 
@@ -76,24 +73,6 @@ public class NettySession {
         return ipKey.get();
     }
 
-    public ByteBuf build(short messageId, String route, short statusCode, byte[] data) {
-        ByteBuf buffer = Unpooled.buffer();
-        buffer.writeShort(messageId);
-        buffer.writeByte(route.length());
-        buffer.writeBytes(route.getBytes());
-        buffer.writeShort(statusCode);
-
-        if (data != null) {
-            buffer.writeShort(data.length);
-            buffer.writeBytes(data);
-            byte[] crcBytes = new byte[6 + data.length];
-            buffer.getBytes(0, crcBytes);
-            long crc = CRCUtils.calculateCRC(CRCUtils.Parameters.CRC32, crcBytes);
-            buffer.writeLong(crc);
-        }
-        return buffer;
-    }
-
     public void writeAndFlush(Object obj) {
         channel.writeAndFlush(obj);
     }
@@ -101,26 +80,6 @@ public class NettySession {
     public void writeRpcPacket(Object obj) {
         channel.writeAndFlush(new RpcPacket<>(obj));
     }
-
-
-//    public void write(short messageId, String route, short statusCode, byte[] data) {
-//        ByteBuf buffer = Unpooled.buffer();
-//        buffer.writeShort(messageId);
-//        buffer.writeByte(route.length());
-//        buffer.writeBytes(route.getBytes());
-//        buffer.writeShort(statusCode);
-//
-//        if (data != null) {
-//            buffer.writeShort(data.length);
-//            buffer.writeBytes(data);
-//            byte[] crcBytes = new byte[6 + data.length];
-//            buffer.getBytes(0, crcBytes);
-//            long crc = CRCUtils.calculateCRC(Parameters.CRC32, crcBytes);
-//            buffer.writeLong(crc);
-//        }
-//
-//        write(buffer);
-//    }
 
     @Override
     public String toString() {

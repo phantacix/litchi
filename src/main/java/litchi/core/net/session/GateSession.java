@@ -5,17 +5,15 @@
 //-------------------------------------------------
 package litchi.core.net.session;
 
-import com.google.protobuf.Message;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
-import litchi.core.exception.ErrorCodeException;
-import litchi.core.net.rpc.packet.RequestPacket;
+import litchi.core.common.StatusCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import litchi.core.common.StatusCode;
 
 public class GateSession extends NettySession implements StatusCode {
     protected Logger LOGGER = LoggerFactory.getLogger(GateSession.class);
@@ -39,41 +37,26 @@ public class GateSession extends NettySession implements StatusCode {
         return attr.get() == null ? null : attr.get();
     }
 
-    public void setNodeId(String nodeID) {
+    public void setNodeId(String nodeId) {
         Attribute<String> attr = channel().attr(NODE_ID);
-        attr.set(nodeID);
+        attr.set(nodeId);
     }
 
-    public void returnError(short statusCode) {
-        throw new ErrorCodeException(statusCode);
-    }
+    public void writeWebSocketFrame(short messageId, String route, short statusCode, byte[] data) {
+        ByteBuf buffer = Unpooled.buffer();
+        buffer.writeShort(messageId);
+        buffer.writeByte(route.length());
+        buffer.writeBytes(route.getBytes());
+        buffer.writeShort(statusCode);
 
-    public void returnError(RequestPacket request, short statusCode) {
-        //session.write(packet.getMessageId(), packet.getRoute(), statusCode, null);
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("error : code={}, RequestPacket = {}", statusCode, request);
+        if (data != null) {
+            buffer.writeShort(data.length);
+            buffer.writeBytes(data);
         }
-        throw new ErrorCodeException(statusCode);
+        super.writeAndFlush(new BinaryWebSocketFrame(buffer));
     }
 
-    public void returnResponse(RequestPacket request, Message response) {
-        this.write(request.messageId, request.route, StatusCode.SUCCESS, response.toByteArray());
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("response: uid={}, RpcRequest = {}, Response = {} \n", uid(), request, response);
-        }
+    public void writeWebSocketFrame(short messageId, String route, short statusCode) {
+        writeWebSocketFrame(messageId, route, statusCode, null);
     }
-
-    public void write(short messageId, String route, short statusCode, byte[] data) {
-        ByteBuf buffer = build(messageId, route, statusCode, data);
-        writeAndFlush(new BinaryWebSocketFrame(buffer));
-    }
-
-    public void write(String route, short statusCode) {
-        write((short) 0, route, statusCode, null);
-    }
-
-    public void write(short messageId, String route, short statusCode) {
-        write(messageId, route, statusCode, null);
-    }
-
 }
