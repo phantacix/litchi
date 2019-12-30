@@ -40,12 +40,6 @@ public class RouteInfo {
      */
     public int threadId;
 
-    /**
-     * 取请求参数的第x个索引做为hash计算
-     */
-    public int hashArgsIndex;
-
-
     public Route routeAnnotation;
     public Rpc rpcAnnotation;
     public Handler handlerAnnotation;
@@ -71,14 +65,12 @@ public class RouteInfo {
         if(rpcAnnotation != null) {
             routeInfo.rpcAnnotation = rpcAnnotation;
             routeInfo.threadId = rpcAnnotation.threadId() > 0 ? rpcAnnotation.threadId() : routeAnnotation.defaultThreadId();
-            routeInfo.hashArgsIndex = rpcAnnotation.hashArgsIndex();
             routeInfo.routeName = routeInfo.buildRouteName(clazz, routeAnnotation, method, "");
         }
 
         if(handlerAnnotation != null) {
             routeInfo.handlerAnnotation = handlerAnnotation;
             routeInfo.threadId = handlerAnnotation.threadId() > 0 ? handlerAnnotation.threadId() : routeAnnotation.defaultThreadId();
-            routeInfo.hashArgsIndex = handlerAnnotation.hashArgsIndex();
             routeInfo.routeName = routeInfo.buildRouteName(clazz, routeAnnotation, method, handlerAnnotation.name());
         }
 
