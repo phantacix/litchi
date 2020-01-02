@@ -7,15 +7,15 @@ package litchi.core.net.rpc.handler;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import litchi.core.net.rpc.packet.RpcPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import litchi.core.net.rpc.packet.RpcPacket;
 
 /**
  * @author 0x737263
  */
 public abstract class BaseChannelHandler<T> extends SimpleChannelInboundHandler<RpcPacket<T>> {
-    private static Logger LOGGER = LoggerFactory.getLogger(BaseChannelHandler.class);
+    protected static Logger LOGGER = LoggerFactory.getLogger(BaseChannelHandler.class);
     private Class<T> clazz;
 
     public BaseChannelHandler(Class<T> clazz) {

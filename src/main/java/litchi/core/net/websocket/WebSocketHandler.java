@@ -49,6 +49,11 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
 
         //如果是本服务器请求则执行，否则，转发到具体的服务器执行
         if (packet.nodeType().equals(litchi.currentNode().getNodeType())) {
+            if (litchi.route().getRouteInfo(packet.route) == null) {
+                LOGGER.warn("route not found. packet:{}", packet);
+                return;
+            }
+
             litchi.dispatch().publish(new RequestPacketExecutor(litchi, session, packet));
             return;
         }

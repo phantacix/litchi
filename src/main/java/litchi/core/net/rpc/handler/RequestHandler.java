@@ -28,6 +28,11 @@ public class RequestHandler extends BaseChannelHandler<RequestPacket> {
     @Override
     protected void onChannelRead(ChannelHandlerContext ctx, RequestPacket packet) {
         NettySession session = litchi.nodeSessionService().getSession(ctx);
+
+        if (litchi.route().getRouteInfo(packet.route) == null) {
+            LOGGER.warn("route not found. packet:{}", packet);
+            return;
+        }
         litchi.dispatch().publish(new RequestPacketExecutor(litchi, session, packet));
     }
 }
