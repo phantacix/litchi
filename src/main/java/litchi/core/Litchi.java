@@ -6,6 +6,7 @@ import litchi.core.common.Schedule;
 import litchi.core.common.extend.ObjectReference;
 import litchi.core.common.logback.LogUtils;
 import litchi.core.common.utils.JsonUtils;
+import litchi.core.common.utils.PathUtils;
 import litchi.core.components.Component;
 import litchi.core.components.ComponentCallback;
 import litchi.core.components.ComponentFeature;
@@ -27,6 +28,7 @@ import litchi.core.router.RouteComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -104,6 +106,12 @@ public class Litchi {
             sb.append("-Dlitchi.nodeid      \t当前服务器的结点id.  eg. -Dlitchi.nodeid=gate-1 \n");
             //sb.append("-Dadmin.resources    \tweb容器资源文件相对路径\n");
             throw new Exception(sb.toString());
+        }
+
+        //check env path
+        File path = new File(getEnvPath());
+        if (!path.isDirectory()) {
+            throw new Exception(String.format("file:%s  is not directory.", getEnvPath()));
         }
 
         //init logback.xml configure
@@ -355,7 +363,7 @@ public class Litchi {
     }
 
     public String getEnvPath() {
-        return this.rootConfigPath + "/" + this.envPath + "/" + this.envName;
+        return PathUtils.combine(this.rootConfigPath, this.envPath, this.envName);
     }
 
     public String getEnvName() {
