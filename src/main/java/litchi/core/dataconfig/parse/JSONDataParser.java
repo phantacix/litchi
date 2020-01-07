@@ -162,11 +162,4 @@ public class JSONDataParser implements DataParser {
 	public String fileExtensionName() {
 		return FILE_EXT_NAME;
 	}
-
-	@Override
-	public String format(String text) {
-		Object obj = JSON.parse(text);
-		String jsonString = JSON.toJSONString(obj, SerializerFeature.PrettyFormat);
-		return jsonString;
-	}
 }

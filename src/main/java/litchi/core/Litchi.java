@@ -11,7 +11,7 @@ import litchi.core.components.ComponentCallback;
 import litchi.core.components.ComponentFeature;
 import litchi.core.components.NetComponent;
 import litchi.core.dataconfig.DataConfig;
-import litchi.core.dataconfig.StorageDataConfig;
+import litchi.core.dataconfig.DataConfigComponent;
 import litchi.core.dbqueue.DBQueue;
 import litchi.core.dbqueue.DBQueueComponent;
 import litchi.core.dispatch.Dispatcher;
@@ -175,7 +175,7 @@ public class Litchi {
     }
 
     public Litchi setDataConfig() {
-        this.setDataConfig(new StorageDataConfig(this));
+        this.setDataConfig(new DataConfigComponent(this));
         return this;
     }
 

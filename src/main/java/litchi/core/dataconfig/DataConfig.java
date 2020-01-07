@@ -5,10 +5,9 @@
 //-------------------------------------------------
 package litchi.core.dataconfig;
 
-import java.util.List;
+import litchi.core.components.Component;
 
-import litchi.core.components.Component;
-import litchi.core.components.Component;
+import java.util.List;
 
 /**
  * 数据配置接口
@@ -56,14 +55,6 @@ public interface DataConfig extends Component {
 	 * @return
 	 */
 	<T extends ConfigAdapter> T getModel(Class<T> modelClass, Object id);
-
-	/**
-	 * 保存byte[] data至newconfig文件夹
-	 * @param fileName
-	 * @param text
-	 * @return
-	 */
-	boolean flush2NewConfig(String fileName, String text);
 	
 	/**
 	 * 根据文件名获取映射类

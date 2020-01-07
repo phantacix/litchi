@@ -5,17 +5,16 @@
 //-------------------------------------------------
 package litchi.core.dataconfig;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * 配置数据缓存管理
  * @author Paopao
- * 		   2018-08-01
  */
 public class DataStorage {
 	
