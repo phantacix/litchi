@@ -118,7 +118,7 @@ public class HttpServerHandler extends BaseServerHandler {
 	}
 
 	private void runController(ChannelHandlerContext ctx, FullHttpRequest req) {
-		final RouteResult<RouteAction> routeResult = routers.route(req.method(), req.uri().toLowerCase());
+		final RouteResult<RouteAction> routeResult = routers.route(req.method(), req.uri());
 		if (routeResult == null) {
 			writeHttpStatus(ctx, HttpResponseStatus.BAD_REQUEST);
 			return;
