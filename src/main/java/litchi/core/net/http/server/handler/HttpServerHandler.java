@@ -90,10 +90,10 @@ public class HttpServerHandler extends BaseServerHandler {
 				String[] paths = urlRouter.path();
 				for (String p : paths) {
 					if (urlRouter.post()) {
-						routers.POST(p.toLowerCase(), action);
+						routers.POST(p, action);
 					}
 					if (urlRouter.get()) {
-						routers.GET(p.toLowerCase(), action);
+						routers.GET(p, action);
 					}
 				}
 			}
