@@ -90,10 +90,10 @@ public class HttpServerHandler extends BaseServerHandler {
 				String[] paths = urlRouter.path();
 				for (String p : paths) {
 					if (urlRouter.post()) {
-						routers.POST(p.toLowerCase(), action);
+						routers.POST(p, action);
 					}
 					if (urlRouter.get()) {
-						routers.GET(p.toLowerCase(), action);
+						routers.GET(p, action);
 					}
 				}
 			}
@@ -118,7 +118,7 @@ public class HttpServerHandler extends BaseServerHandler {
 	}
 
 	private void runController(ChannelHandlerContext ctx, FullHttpRequest req) {
-		final RouteResult<RouteAction> routeResult = routers.route(req.method(), req.uri().toLowerCase());
+		final RouteResult<RouteAction> routeResult = routers.route(req.method(), req.uri());
 		if (routeResult == null) {
 			writeHttpStatus(ctx, HttpResponseStatus.BAD_REQUEST);
 			return;
