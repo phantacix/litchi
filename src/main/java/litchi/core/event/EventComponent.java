@@ -117,7 +117,12 @@ public class EventComponent implements Component {
         Map<Integer, List<ASMMethod>> maps = this.eventInfoMaps.get(event.name);
         List<ASMMethod> list = maps.get(event.threadId);
         for (ASMMethod method : list) {
-            method.invoke(event);
+        	try {
+        		method.invoke(event);
+			} catch (Exception e) {
+				LOGGER.error("event execute error. event={}", event.name);
+				LOGGER.error("", e);
+			}
         }
     }
 
