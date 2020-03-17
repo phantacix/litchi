@@ -14,7 +14,7 @@ import litchi.core.components.NetComponent;
 import litchi.core.dataconfig.DataConfig;
 import litchi.core.dataconfig.DataConfigComponent;
 import litchi.core.dbqueue.DBQueue;
-import litchi.core.dbqueue.DBQueueComponent;
+import litchi.core.dbqueue.SQLQueueComponent;
 import litchi.core.dispatch.Dispatcher;
 import litchi.core.dispatch.DispatcherComponent;
 import litchi.core.dispatch.disruptor.ThreadInfo;
@@ -193,7 +193,7 @@ public class Litchi {
     }
 
     public Litchi setDBQueue() {
-        this.setDBQueue(new DBQueueComponent(this));
+        this.setDBQueue(new SQLQueueComponent(this));
         return this;
     }
 
