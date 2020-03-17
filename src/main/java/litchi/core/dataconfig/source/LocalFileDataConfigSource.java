@@ -13,6 +13,12 @@ import litchi.core.common.utils.FileUtils;
 import litchi.core.common.utils.StringUtils;
 import litchi.core.dataconfig.DataConfigSource;
 import litchi.core.dataconfig.parse.DataParser;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.HiddenFileFilter;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
+import org.apache.commons.io.monitor.FileAlterationMonitor;
+import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,18 +42,15 @@ public class LocalFileDataConfigSource implements DataConfigSource {
      */
     private String filePath = "dataconfig" + File.separator;
 
-    /**
-     * 重新加载配置文件的路径
-     */
-    private String reloadPath = "newconfig" + File.separator;
-    /**
-     * 是否可以运行重新加载新的配置文件
-     */
-    private boolean reloadRunnable = true;
+    private File fileDir;
+
+    private int reloadFlushTime;
 
     private Litchi litchi;
 
     private Map<String, Long> fileCRCMaps = new HashMap<>();
+
+    private FileAlterationMonitor reloadMonitor;
 
     public LocalFileDataConfigSource() {
     }
@@ -63,27 +66,43 @@ public class LocalFileDataConfigSource implements DataConfigSource {
         String dataSourceKey = config.getString("dataSource");
         JSONObject fileConfig = config.getJSONObject(dataSourceKey);
 
-        String filePath = FileUtils.combine(litchi.getRootConfigPath(), fileConfig.getString("filePath"));
-        String reloadPath = FileUtils.combine(litchi.getRootConfigPath(), fileConfig.getString("reloadPath")) + File.separator;
-        int reloadFlushTime = fileConfig.getInteger("reloadFlushTime");
+        if (fileConfig == null || fileConfig.isEmpty()) {
+            LOGGER.error("'dataConfig' node is null. check litchi.json please.");
+            return;
+        }
+
+        this.filePath = FileUtils.combine(litchi.getRootConfigPath(), fileConfig.getString("filePath"));
+
+        this.reloadFlushTime = fileConfig.getInteger("reloadFlushTime");
 
         this.litchi = litchi;
-        if (StringUtils.isNotBlank(filePath)) {
-            this.filePath = filePath;
-        }
-        if (StringUtils.isNotBlank(reloadPath)) {
-            this.reloadPath = reloadPath;
+
+        this.fileDir = new File(this.filePath);
+        if (!this.fileDir.isDirectory()) {
+            LOGGER.error("current data config path is not directory: path:{}", this.filePath);
+            return;
         }
 
-        litchi.schedule().addEveryMillisecond(() -> {
-            if (reloadRunnable) {
-                checkFileUpdate();
-            }
-        }, reloadFlushTime);
+        try {
+            reloadMonitor = new FileAlterationMonitor(this.reloadFlushTime, createFileObserver());
+            reloadMonitor.start();
+
+            LOGGER.info("local data config flush monitor is start!");
+            LOGGER.info("path:{}, flushTime:{}ms", this.filePath, this.reloadFlushTime);
+        } catch (Exception ex) {
+            LOGGER.error("{}", ex);
+        }
     }
 
     @Override
     public void destroy() {
+        try {
+            if(this.reloadMonitor != null) {
+                reloadMonitor.stop();
+            }
+        } catch (Exception ex) {
+            LOGGER.error("{}", ex);
+        }
     }
 
     @Override
@@ -120,64 +139,58 @@ public class LocalFileDataConfigSource implements DataConfigSource {
         return FileUtils.combine(this.filePath, fileName + getFileExtensionName());
     }
 
-    /**
-     * 检查文件更新
-     */
-    private void checkFileUpdate() {
-        if (reloadRunnable == false) {
-            return;
-        }
+    private FileAlterationObserver createFileObserver() {
+        IOFileFilter filterDirs = FileFilterUtils.and(FileFilterUtils.directoryFileFilter(),
+                HiddenFileFilter.VISIBLE);
+        IOFileFilter filterExtName = FileFilterUtils.and(FileFilterUtils.fileFileFilter(),
+                FileFilterUtils.suffixFileFilter(this.getFileExtensionName()));
 
-        try {
-            this.reloadRunnable = false;
+        IOFileFilter filter = FileFilterUtils.or(filterDirs, filterExtName);
 
-            File dir = new File(this.reloadPath);
-            if (!dir.isDirectory()) {
-                LOGGER.error("current reload path is not directory: path:{}", this.reloadPath);
-                return;
+        FileAlterationObserver observer = new FileAlterationObserver(this.fileDir, filter);
+        observer.addListener(new FileAlterationListenerAdaptor() {
+            public void onFileCreate(File file) {
+                LOGGER.info("[create]" + file.getAbsolutePath());
+                reloadProcess(file);
             }
 
-            for (File f : dir.listFiles()) {
-                if (f.isDirectory()) {
-                    continue;
-                }
-
-                String fileName = f.getName().split("\\.")[0];
-
-                String text = FileUtils.readFile(f);
-
-                long newCRC = CRCUtils.calculateCRC(text);
-                Long oldCRC = fileCRCMaps.get(f.getName());
-
-                if (oldCRC == null || newCRC != oldCRC) {
-                    try {
-                        boolean result = litchi.data().checkModelAdapter(fileName, text);
-                        if (result) {
-                            //add new crc value
-                            fileCRCMaps.put(fileName, newCRC);
-
-                            litchi.data().reloadConfig(fileName, text);
-                            fileMove2DataConfig(fileName, text);
-                        }
-                        LOGGER.warn("load file:[{}] is [{}]", fileName, result ? "success" : "fail");
-                    } catch (Exception ex) {
-                        LOGGER.error("{}", ex);
-                    } finally {
-                        f.delete();
-                    }
-                }
+            public void onFileChange(File file) {
+                LOGGER.info("[change]:" + file.getAbsolutePath());
+                reloadProcess(file);
             }
 
-        } catch (Exception ex) {
-            LOGGER.error("{}", ex);
-        } finally {
-            this.reloadRunnable = true;
-        }
+            public void onStart(FileAlterationObserver observer) {
+                super.onStart(observer);
+            }
+
+            public void onStop(FileAlterationObserver observer) {
+                super.onStop(observer);
+            }
+        });
+
+        return observer;
     }
 
-    private void fileMove2DataConfig(String fileName, String content) {
-        String filePath = getFullPath(fileName);
-        FileUtils.writeFile(new File(filePath), content);
+    private void reloadProcess(File f) {
+        String fileName = f.getName().split("\\.")[0];
+        String text = FileUtils.readFile(f);
+        long newCRC = CRCUtils.calculateCRC(text);
+        Long oldCRC = fileCRCMaps.get(f.getName());
+
+        if (oldCRC == null || newCRC != oldCRC) {
+            try {
+                boolean result = litchi.data().checkModelAdapter(fileName, text);
+                if (result) {
+                    //add new crc value
+                    fileCRCMaps.put(fileName, newCRC);
+                    litchi.data().reloadConfig(fileName, text);
+                }
+
+                LOGGER.warn("reload file:[{}] is [{}]", fileName, result ? "success" : "fail");
+            } catch (Exception ex) {
+                LOGGER.error("{}", ex);
+            }
+        }
     }
 
     @Override
