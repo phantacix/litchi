@@ -95,6 +95,7 @@ public class SQLQueueComponent implements DBQueue {
         synchronized (syncLock) {
             ConcurrentLinkedQueue<Object[]> queue = TABLE_QUEUE.get(table.tableName());
             if (queue == null) {
+                queue = new ConcurrentLinkedQueue<>();
                 TABLE_QUEUE.putIfAbsent(table.tableName(), queue);
                 TABLE_INFO.putIfAbsent(table.tableName(), table.getTableInfo());
             }
@@ -190,12 +191,12 @@ public class SQLQueueComponent implements DBQueue {
 
                     for (Map.Entry<String, ConcurrentLinkedQueue<Object[]>> entry : TABLE_QUEUE.entrySet()) {
 
-                        //正在提交则跳过
-                        if (TABLE_SUBMIT_FLAG.get(entry.getKey()) == true) {
+                        Boolean flag = TABLE_SUBMIT_FLAG.get(entry.getKey());
+                        if (flag != null && flag == true) {
                             continue;
                         }
-                        TABLE_SUBMIT_FLAG.put(entry.getKey(), true);
 
+                        TABLE_SUBMIT_FLAG.put(entry.getKey(), true);
                         //submit runnable
                         this.executor.submit(()-> executeQueue(entry.getKey()));
                     }
