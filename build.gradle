@@ -32,7 +32,7 @@ dependencies {
 	compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
 	compile group: 'ch.qos.logback', name: 'logback-core', version: '1.2.3'
 
-	compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.13'
+	compile group: 'mysql', name: 'mysql-connector-java', version: '5.1.48'
 	compile group: 'com.zaxxer', name: 'HikariCP', version: '3.3.1'
 	compile group: 'commons-dbutils', name: 'commons-dbutils', version: '1.7'
 
