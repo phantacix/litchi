@@ -11,6 +11,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,11 @@ public class ReflectUtils {
 		clazzList.add(fieldType);
 
 		if (fieldType == List.class) {
+			Type valueType = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
+			clazzList.add((Class<?>) valueType);
+		}
+		
+		if (fieldType == Set.class) {
 			Type valueType = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
 			clazzList.add((Class<?>) valueType);
 		}

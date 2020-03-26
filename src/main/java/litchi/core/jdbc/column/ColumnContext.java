@@ -5,16 +5,18 @@
 //-------------------------------------------------
 package litchi.core.jdbc.column;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import litchi.core.jdbc.table.JsonEntity;
-
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import litchi.core.jdbc.table.JsonEntity;
 
 public class ColumnContext {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ColumnContext.class);
@@ -53,6 +55,7 @@ public class ColumnContext {
 		register(new DecimalColumn(), BigDecimal.class);
 		register(new ByteArrayColumn(), byte[].class);
 		register(new ListColumn(), List.class);
+		register(new SetColumn(), Set.class);
 		register(new MapColumn(), Map.class);
 		// register(new BlobColumn(), ProtoEntity.class);
 		// register(new BlobTypeColumn(), ProtoTypeEntity.class);
