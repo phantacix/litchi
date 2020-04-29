@@ -22,7 +22,10 @@ public class NumberColumn extends AbstractColumnParser {
         try {
             FieldAccess fieldAccess = instance.getTableInfo().fieldAccess;
             Object x = rs.getObject(columnInfo.aliasName);
-            fieldAccess.set(instance, columnInfo.fieldName, x);
+            if (x != null) {
+				fieldAccess.set(instance, columnInfo.fieldName, x);
+			}
+            // 数据库中该字段为null时，使用对象中该字段的默认值
         } catch (Exception e) {
             e.printStackTrace();
         }
