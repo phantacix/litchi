@@ -5,15 +5,16 @@
 //-------------------------------------------------
 package litchi.core.jdbc.column;
 
-import com.alibaba.fastjson.JSON;
-import com.esotericsoftware.reflectasm.FieldAccess;
-import litchi.core.jdbc.table.JsonEntity;
-import litchi.core.jdbc.table.Table;
-import litchi.core.jdbc.table.TableInfo;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import com.alibaba.fastjson.JSON;
+import com.esotericsoftware.reflectasm.FieldAccess;
+
+import litchi.core.jdbc.table.JsonEntity;
+import litchi.core.jdbc.table.Table;
+import litchi.core.jdbc.table.TableInfo;
 
 /**
  * @author 0x737263
@@ -28,7 +29,7 @@ public class JsonColumn extends AbstractColumnParser {
             return;
         }
 
-        Object obj = JSON.parseObject(byteJson, columnInfo.getColumnType(0));
+        Object obj = JsonEntityParser.parseJson(byteJson, columnInfo.getColumnType(0));
         fieldAccess.set(instance, columnInfo.fieldName, obj);
 
         JsonEntity jsonEntity = (JsonEntity) fieldAccess.get(instance, columnInfo.fieldName);

@@ -61,7 +61,7 @@ public class MapColumn extends AbstractColumnParser {
                         key = obj;
                     }
                     try {
-                        Object value = JSON.parseObject(entry.getValue().toString(), valueType);
+                        Object value = JsonEntityParser.parseJson(entry.getValue().toString(), valueType);
                         originMaps.put(key, value);
                     } catch (Exception e) {
                         LOGGER.error("read column error. class={} field={}", instance.getTableInfo().clazz().getSimpleName(), columnInfo.fieldName);

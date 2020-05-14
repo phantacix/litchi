@@ -23,10 +23,11 @@ public class ColumnContext {
 
 	private static Map<Class<?>, AbstractColumnParser> PARSER_MAP = new HashMap<>();
 
+
 	public ColumnContext() {
-		
+
 	}
-	
+
 	private void register(AbstractColumnParser parser, Class<?>... classes) {
 		for (Class<?> clazz : classes) {
 			PARSER_MAP.put(clazz, parser);

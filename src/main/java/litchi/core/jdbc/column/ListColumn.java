@@ -26,7 +26,7 @@ public class ListColumn extends AbstractColumnParser {
         byte[] jsonBytes = rs.getBytes(columnInfo.aliasName);
         if (jsonBytes != null && jsonBytes.length > 0) {
             Class<?> valueType = columnInfo.getColumnType(1);
-            List<?> value = JSON.parseArray(new String(jsonBytes), valueType);
+            List<?> value = JsonEntityParser.parseArray(jsonBytes, valueType);
             @SuppressWarnings("unchecked")
             List<Object> list = (List<Object>) fieldAccess.get(instance, columnInfo.fieldName);
             if (list != null) {

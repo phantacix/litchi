@@ -20,7 +20,7 @@ import litchi.core.jdbc.table.Table;
 import litchi.core.jdbc.table.TableInfo;
 
 /**
- * 
+ *
  * @author paopao
  * 2020-03-26
  */
@@ -32,7 +32,7 @@ public class SetColumn extends AbstractColumnParser {
         byte[] bytes = rs.getBytes(columnInfo.aliasName);
         if (bytes != null && bytes.length > 0) {
         	Class<?> valueType = columnInfo.getColumnType(1);
-            List<?> value = JSON.parseArray(new String(bytes), valueType);
+            List<?> value = JsonEntityParser.parseArray(bytes, valueType);
             @SuppressWarnings("unchecked")
             Set<Object> set = (Set<Object>) fieldAccess.get(instance, columnInfo.fieldName);
             if (set != null) {
