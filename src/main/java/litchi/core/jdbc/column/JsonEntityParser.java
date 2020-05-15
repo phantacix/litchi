@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
 
+import litchi.core.jdbc.table.JsonEntity;
+
 public class JsonEntityParser {
 
 	private static Set<Class<?>> CHECKED_ENTITY_CLASSES = new HashSet<>();
@@ -21,7 +23,7 @@ public class JsonEntityParser {
 
 	public static Object parseJson(String value, Class<?> valueType) {
 		// 检查JsonEntity实现类是否存在空构造方法
-		if (!CHECKED_ENTITY_CLASSES.contains(valueType)) {
+		if (valueType == JsonEntity.class && !CHECKED_ENTITY_CLASSES.contains(valueType)) {
 			synchronized (CHECKED_ENTITY_CLASSES) {
 				Constructor<?>[] constructors = valueType.getConstructors();
 				boolean hasEmptyConstructor = false;
@@ -47,7 +49,7 @@ public class JsonEntityParser {
 
 	public static List<?> parseArray(String value, Class<?> valueType) {
 		// 检查JsonEntity实现类是否存在空构造方法
-		if (!CHECKED_ENTITY_CLASSES.contains(valueType)) {
+		if (valueType == JsonEntity.class && !CHECKED_ENTITY_CLASSES.contains(valueType)) {
 			synchronized (CHECKED_ENTITY_CLASSES) {
 				Constructor<?>[] constructors = valueType.getConstructors();
 				boolean hasEmptyConstructor = false;
