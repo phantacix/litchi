@@ -89,7 +89,7 @@ public class GateSessionService {
     }
 
     public GateSession getSession(ChannelHandlerContext ctx) {
-        return getSession(ctx.channel().id().asShortText());
+        return getSession(ctx.channel().id().asLongText());
     }
 
     public GateSession getSession(String sessionId) {
