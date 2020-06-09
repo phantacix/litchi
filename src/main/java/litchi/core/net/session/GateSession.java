@@ -28,7 +28,7 @@ public class GateSession extends NettySession implements StatusCode {
     }
 
     public String getChannelId() {
-        return channel().id().asShortText();
+        return channel().id().asLongText();
     }
 
     public void close() {

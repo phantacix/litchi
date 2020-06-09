@@ -36,7 +36,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
     public void channelRead0(ChannelHandlerContext ctx, WebSocketFrame frame) {
         GateSession session = sessionService.getSession(ctx);
         if (session == null) {
-            LOGGER.warn("session not exist. channelId={}", ctx.channel().id().asShortText());
+            LOGGER.warn("session not exist. channelId={}", ctx.channel().id().asLongText());
             ctx.close();
             return;
         }
@@ -127,7 +127,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         try {
-            String channelId = ctx.channel().id().asShortText();
+            String channelId = ctx.channel().id().asLongText();
             GateSession session = sessionService.getSession(ctx);
             if (session == null) {
                 return;
@@ -162,7 +162,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         if (evt instanceof IdleStateEvent) {
             ctx.close();
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Channel idle. {}", ctx.channel().id().asShortText());
+                LOGGER.debug("Channel idle. {}", ctx.channel().id().asLongText());
             }
         }
     }
