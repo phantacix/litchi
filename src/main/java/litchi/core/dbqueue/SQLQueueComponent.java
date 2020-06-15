@@ -29,7 +29,7 @@ public class SQLQueueComponent implements DBQueue {
     /**
      * key:TableName,value:Queue<values>
      */
-    private static ConcurrentHashMap<String, ConcurrentLinkedQueue<Object[]>> TABLE_QUEUE = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, ConcurrentLinkedQueue<DbQueueModel>> TABLE_QUEUE = new ConcurrentHashMap<>();
 
     /**
      * key:TableName, value:TableInfo
@@ -91,9 +91,9 @@ public class SQLQueueComponent implements DBQueue {
         this.executor = new NamedScheduleExecutor(this.dbPoolSize, "dbQueue-queue-thread");
     }
 
-    protected ConcurrentLinkedQueue<Object[]> getQueue(Table<?> table) {
+    protected ConcurrentLinkedQueue<DbQueueModel> getQueue(Table<?> table) {
         synchronized (syncLock) {
-            ConcurrentLinkedQueue<Object[]> queue = TABLE_QUEUE.get(table.tableName());
+            ConcurrentLinkedQueue<DbQueueModel> queue = TABLE_QUEUE.get(table.tableName());
             if (queue == null) {
                 queue = new ConcurrentLinkedQueue<>();
                 TABLE_QUEUE.putIfAbsent(table.tableName(), queue);
@@ -107,11 +107,24 @@ public class SQLQueueComponent implements DBQueue {
     public void updateQueue(Table<?>... tables) {
         for (Table<?> table : tables) {
             try {
-                ConcurrentLinkedQueue<Object[]> queue = getQueue(table);
-                queue.add(table.writeData());
+                ConcurrentLinkedQueue<DbQueueModel> queue = getQueue(table);
+                queue.add(new DbQueueModel(ModelType.UPDATE, table.writeData()));
             } catch (Exception ex) {
                 LOGGER.error("Table into queue error. {}", ex);
                 LOGGER.error("tableName:{}, values:{}", table.tableName(),table.writeData());
+            }
+        }
+    }
+    
+    @Override
+    public void deleteQueue(Table<?>... tables) {
+    	for (Table<?> table : tables) {
+            try {
+                ConcurrentLinkedQueue<DbQueueModel> queue = getQueue(table);
+                queue.add(new DbQueueModel(ModelType.DELETE, table.getPkId()));
+            } catch (Exception ex) {
+                LOGGER.error("Table into delete queue error. {}", ex);
+                LOGGER.error("tableName:{}, values:{}", table.tableName(), table.getPkId());
             }
         }
     }
@@ -131,7 +144,7 @@ public class SQLQueueComponent implements DBQueue {
     @Override
     public int getTableSize() {
         int size = 0;
-        for (Map.Entry<String, ConcurrentLinkedQueue<Object[]>> entry : TABLE_QUEUE.entrySet()) {
+        for (Map.Entry<String, ConcurrentLinkedQueue<DbQueueModel>> entry : TABLE_QUEUE.entrySet()) {
             size += entry.getValue().size();
         }
         return size;
@@ -189,7 +202,7 @@ public class SQLQueueComponent implements DBQueue {
                 if (System.currentTimeMillis() > this.lastSubmitTime) {
                     this.lastSubmitTime = System.currentTimeMillis() + this.tableSubmitFrequency;
 
-                    for (Map.Entry<String, ConcurrentLinkedQueue<Object[]>> entry : TABLE_QUEUE.entrySet()) {
+                    for (Map.Entry<String, ConcurrentLinkedQueue<DbQueueModel>> entry : TABLE_QUEUE.entrySet()) {
 
                         Boolean flag = TABLE_SUBMIT_FLAG.get(entry.getKey());
                         if (flag != null && flag == true) {
@@ -212,16 +225,24 @@ public class SQLQueueComponent implements DBQueue {
     private void executeQueue(String tableName) {
 
         try {
-            ConcurrentLinkedQueue<Object[]> queue = TABLE_QUEUE.get(tableName);
+            ConcurrentLinkedQueue<DbQueueModel> queue = TABLE_QUEUE.get(tableName);
 
             final TableInfo tableInfo = TABLE_INFO.get(tableName);
-            final String sql = FastJdbc.replaceSql.toSqlString(tableInfo.annotation().tableName(), tableInfo.buildDbColumns());
+            String sql = null;
 
             for (int i = 0; i < this.tableSubmitNum; i++) {
-                Object[] values = queue.poll();
+            	DbQueueModel model = queue.poll();
+                Object[] values = model.getArgs();
                 if (values == null) {
                     continue;
                 }
+                if (model.getModelType() == ModelType.UPDATE) {
+					sql = FastJdbc.replaceSql.toSqlString(tableInfo.annotation().tableName(), tableInfo.buildDbColumns());
+				} else if (model.getModelType() == ModelType.DELETE) {
+                	String[] keys = new String[1];
+                    keys[0] = tableInfo.pkName();
+                    sql = FastJdbc.delSql.toSqlString(tableInfo.pkName(), tableInfo.annotation().tableName(), keys);
+				}
 
                 try {
                     QueryRunner runner = defaultJdbc.getJdbcTemplate(tableInfo.clazz());

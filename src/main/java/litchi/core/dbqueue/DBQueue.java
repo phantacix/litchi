@@ -25,6 +25,12 @@ public interface DBQueue extends Component {
 	void updateQueue(Table<?>... tables);
 	
 	/**
+	 * 队列删除
+	 * @param tables
+	 */
+	void deleteQueue(Table<?>... tables);
+	
+	/**
 	 * 数据更新队列
 	 * @param tables
 	 */
