@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * create litchi
+ *
  * @author 0x737263
  */
 public class Litchi {
@@ -45,7 +46,7 @@ public class Litchi {
     private boolean debug;
 
     private String rootConfigPath;
-    private String envPath;
+    private String envDir;
     private String[] basePackages;
     private String envName;
 
@@ -88,17 +89,22 @@ public class Litchi {
         return ref.get();
     }
 
+    public static Litchi createApp(String configPath, String envDir, String envName, String nodeId) throws Exception {
+        ref.set(new Litchi(configPath, envDir, envName, nodeId));
+        return ref.get();
+    }
+
     /**
-     * @param configPath    配置文件根路径
-     * @param envPath       基于configPath根路径的环境目录
-     * @param nodeId        服务器结点id
+     * @param configPath 配置文件根路径
+     * @param envDir     基于configPath根路径的环境目录
+     * @param nodeId     服务器结点id
      */
-    private Litchi(String configPath, String envPath, String envName, String nodeId) throws Exception {
+    private Litchi(String configPath, String envDir, String envName, String nodeId) throws Exception {
         this.rootConfigPath = configPath;
-        this.envPath = envPath;
+        this.envDir = envDir;
         this.envName = envName;
 
-        if (this.rootConfigPath == null || this.envPath == null || this.envName == null || nodeId == null) {
+        if (this.rootConfigPath == null || this.envDir == null || this.envName == null || nodeId == null) {
             StringBuilder sb = new StringBuilder();
             sb.append("litchi VM options config error...\n");
             sb.append("-Dlitchi.config      \t 配置文件相对根路径.  eg. -Dlitchi.config=config \n");
@@ -363,7 +369,7 @@ public class Litchi {
     }
 
     public String getEnvPath() {
-        return PathUtils.combine(this.rootConfigPath, this.envPath, this.envName);
+        return PathUtils.combine(this.rootConfigPath, this.envDir, this.envName);
     }
 
     public String getEnvName() {
