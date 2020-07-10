@@ -143,6 +143,38 @@ public class FastJdbc implements Component {
         return result;
     }
 
+    public <T extends Table<?>> int[] batchUpdate(Collection<T> tables) {
+        if (tables == null || tables.isEmpty()) {
+            return null;
+        }
+
+        QueryRunner runner = null;
+        TableInfo info = null;
+        String sql = null;
+
+        try {
+
+            Object[][] param = new Object[tables.size()][];
+
+            int i = 0;
+            for (T t : tables) {
+                if (runner == null || info == null || sql == null) {
+                    runner = getJdbcTemplate(t.getClass());
+                    info = t.getTableInfo();
+                    sql = replaceSql.toSqlString(t.tableName(), info.buildDbColumns());
+                }
+
+                param[i] = t.writeData();
+                i++;
+            }
+
+            return runner.batch(sql, param);
+        } catch (Exception e) {
+            LOGGER.error("", e);
+            return null;
+        }
+    }
+
     public <T extends Table<?>> int delete(T table) {
         try {
             QueryRunner runner = getJdbcTemplate(table.getClass());
