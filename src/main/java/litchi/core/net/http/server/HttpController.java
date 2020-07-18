@@ -5,15 +5,19 @@
 //-------------------------------------------------
 package litchi.core.net.http.server;
 
-import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
+import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
+import io.netty.handler.codec.http.multipart.*;
+import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
+import io.netty.util.CharsetUtil;
 import litchi.core.common.utils.ObjectUtils;
 import litchi.core.common.utils.StringUtils;
 import litchi.core.net.http.server.router.RouteAction;
@@ -22,36 +26,10 @@ import litchi.core.net.session.ChannelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import java.util.*;
+import java.util.Map.Entry;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpUtil;
-import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.cookie.Cookie;
-import io.netty.handler.codec.http.cookie.DefaultCookie;
-import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
-import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
-import io.netty.handler.codec.http.multipart.Attribute;
-import io.netty.handler.codec.http.multipart.FileUpload;
-import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
-import io.netty.handler.codec.http.multipart.InterfaceHttpData;
-import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
-import io.netty.handler.codec.http.multipart.MixedFileUpload;
-import io.netty.util.CharsetUtil;
-import litchi.core.common.utils.ObjectUtils;
-import litchi.core.common.utils.StringUtils;
-import litchi.core.net.http.server.router.RouteAction;
-import litchi.core.net.http.server.router.RouteResult;
-import litchi.core.net.session.ChannelUtils;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 
 public abstract class HttpController {
     protected Logger LOGGER = LoggerFactory.getLogger(getClass());
@@ -256,7 +234,7 @@ public abstract class HttpController {
         if (maxAge > 0) {
             cookie.setMaxAge(maxAge);
         }
-        if (StringUtils.isBlank(domain)) {
+        if (StringUtils.isNotBlank(domain)) {
             cookie.setDomain(domain);
         }
     }
