@@ -221,7 +221,7 @@ public abstract class HttpController {
     }
 
     public void setCookie(String name, String value) {
-        setCookie(name, value, -1, "");
+        setCookie(name, value, -1, "/");
     }
 
     public void setCookie(String name, String value, long maxAge, String domain) {
