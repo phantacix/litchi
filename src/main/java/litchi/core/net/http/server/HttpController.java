@@ -221,13 +221,14 @@ public abstract class HttpController {
     }
 
     public void setCookie(String name, String value) {
-        setCookie(name, value, -1, "/");
+        setCookie(name, value, -1, "/", "");
     }
 
-    public void setCookie(String name, String value, long maxAge, String domain) {
+    public void setCookie(String name, String value, long maxAge, String path, String domain) {
         Cookie cookie = this.cookieMaps.get(name);
         if (cookie == null) {
             cookie = new DefaultCookie(name, value);
+            cookie.setPath(path);
             this.cookieMaps.put(name, cookie);
         }
         cookie.setValue(value);
