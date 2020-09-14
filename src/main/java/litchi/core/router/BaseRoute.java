@@ -5,14 +5,10 @@
 //-------------------------------------------------
 package litchi.core.router;
 
-import litchi.core.Litchi;
 import litchi.core.event.annotation.EventReceive;
-import litchi.core.exception.CoreException;
-import litchi.core.net.rpc.packet.RequestPacket;
 import litchi.core.net.session.NettySession;
-import litchi.core.router.annoation.Handler;
-import litchi.core.router.annoation.Rpc;
-import litchi.core.common.utils.CRCUtils;
+import litchi.core.router.annotation.Handler;
+import litchi.core.router.annotation.Rpc;
 
 /**
  * 路由继承类请配合注解使用
@@ -42,18 +38,4 @@ public interface BaseRoute<MSG> {
      * @param packet 接收的消息
      */
     void onReceive(NettySession session, MSG packet);
-
-    default long hashByArgsIndex(RequestPacket packet) {
-        RouteInfo routeInfo = Litchi.call().route().getRouteInfo(packet.route);
-        if (routeInfo.hashArgsIndex < 0 || routeInfo.parseMethod == null) {
-            return packet.uid;
-        }
-
-        final Object parameter = packet.getArgs(routeInfo.hashArgsIndex);
-        if (parameter == null) {
-            throw new CoreException("args index error for invoke method. RouteInfo = %s", routeInfo);
-        }
-        return CRCUtils.calculateCRC(parameter.toString());
-    }
-
 }

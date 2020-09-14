@@ -7,32 +7,30 @@ package litchi.core.event.sys;
 
 import litchi.core.event.GameEvent;
 import litchi.core.event.SysEventKey;
-import litchi.core.event.GameEvent;
-import litchi.core.event.SysEventKey;
 
 public class RpcDisconnectEvent extends GameEvent {
-	
-	private String serverType;
-	
-	private String serverId;
 
-	public RpcDisconnectEvent(String serverType, String serverId) {
-		super(SysEventKey.RPC_DISCONNECT_EVENT);
-		this.serverType = serverType;
-		this.serverId = serverId;
-	}
+    private String nodeType;
 
-	@Override
-	public long dispatchHash() {
-		return 0;
-	}
-	
-	public String getServerId() {
-		return serverId;
-	}
-	
-	public String getServerType() {
-		return serverType;
-	}
+    private String nodeId;
+
+    public RpcDisconnectEvent(String nodeType, String nodeId) {
+        super(SysEventKey.RPC_DISCONNECT_EVENT);
+        this.nodeType = nodeType;
+        this.nodeId = nodeId;
+    }
+
+    @Override
+    public long dispatchHash() {
+        return 0;
+    }
+
+    public String getNodeId() {
+        return nodeId;
+    }
+
+    public String getNodeType() {
+        return nodeType;
+    }
 
 }

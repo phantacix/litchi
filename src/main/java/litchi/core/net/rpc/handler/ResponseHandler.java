@@ -8,10 +8,10 @@ package litchi.core.net.rpc.handler;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import litchi.core.Litchi;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import litchi.core.net.rpc.packet.ResponsePacket;
 import litchi.core.net.session.GateSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author 0x737263
@@ -35,7 +35,7 @@ public class ResponseHandler extends BaseChannelHandler<ResponsePacket> {
 
         GateSession session = litchi.sessionService().getOnlineSession(packet.uid);
         if (session != null) {
-            session.write(packet.messageId, packet.route, packet.statusCode, packet.data);
+            session.writeWebSocketFrame(packet.messageId, packet.route, packet.statusCode, packet.data);
         }
     }
 }

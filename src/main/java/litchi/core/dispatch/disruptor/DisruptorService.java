@@ -6,11 +6,12 @@
 package litchi.core.dispatch.disruptor;
 
 import com.lmax.disruptor.RingBuffer;
+import com.lmax.disruptor.WaitStrategy;
 import litchi.core.Litchi;
+import litchi.core.dispatch.executor.BaseExecutor;
 import litchi.core.exception.CoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import litchi.core.dispatch.executor.BaseExecutor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,22 +39,22 @@ public class DisruptorService {
     }
 
     /**
-     * @param infoList
+     * @param infoList thread info list
      */
     public void addThreads(List<ThreadInfo> infoList) {
         for (ThreadInfo info : infoList) {
-            addThread(info.name, info.threadId, info.threadNum);
+            addThread(info.name, info.threadId, info.threadNum,info.waitStrategy);
         }
     }
 
-    public void addThread(String name, int threadId, int threadNum) {
+    public void addThread(String name, int threadId, int threadNum, WaitStrategy waitStrategy) {
         List<MessageThread> threadList = threadMaps.getOrDefault(threadId, new ArrayList<>());
         if (!threadMaps.containsKey(threadId)) {
             threadMaps.put(threadId, threadList);
         }
 
         for (int t = 0; t < threadNum; t++) {
-            MessageThread thread = new MessageThread(litchi, name + "-" + t, ringBufferSize);
+            MessageThread thread = new MessageThread(litchi, name + "-" + t, ringBufferSize, waitStrategy);
             threadList.add(thread);
         }
     }

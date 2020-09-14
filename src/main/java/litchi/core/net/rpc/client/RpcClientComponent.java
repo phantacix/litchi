@@ -15,7 +15,7 @@ import litchi.core.net.rpc.packet.HeartbeatPacket;
 import litchi.core.net.rpc.packet.RegisterNodePacket;
 import litchi.core.net.rpc.packet.RequestPacket;
 import litchi.core.net.session.NettySession;
-import litchi.core.router.annoation.Route;
+import litchi.core.router.annotation.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -192,7 +192,7 @@ public class RpcClientComponent extends NetComponent {
     public void afterStart() {
         //add node
         for (String nodeType : nodeTypes) {
-            Collection<NodeInfo> infoList = litchi.getServerInfoList(nodeType);
+            Collection<NodeInfo> infoList = litchi.getNodeInfoList(nodeType);
             for (NodeInfo info : infoList) {
                 Map<String, NettyRpcClient> clientMaps = this.clientMaps.getOrDefault(info.getNodeType(), new HashMap<>());
                 if (clientMaps.isEmpty()) {

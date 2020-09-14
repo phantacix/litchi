@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * config包中的类继承于此
- * resource.dataconfig包中的文件名必需和model类名一样(忽略大小写)
  * @author 0x737263
  */
 public interface ConfigAdapter {
@@ -24,7 +23,7 @@ public interface ConfigAdapter {
 	void initialize();
 
 	/**
-	 * 索引注册;通过@Index了解具体详情
+	 * 索引注册
 	 * @return
 	 */
 	void registerIndex(List<IndexObject> index);

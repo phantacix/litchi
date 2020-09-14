@@ -119,6 +119,11 @@ public class DBQueueComponent implements DBQueue {
 			}
 		}
 	}
+	
+	@Override
+	public void deleteQueue(Table<?>... tables) {
+		
+	}
 
 	@Override
 	public void updateQueue(Collection<Table<?>> tables) {
@@ -294,4 +299,5 @@ public class DBQueueComponent implements DBQueue {
 		}
 		LOGGER.info("DefaultDBQueue shutdown complete!.....");
 	}
+
 }

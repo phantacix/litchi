@@ -32,11 +32,4 @@ public interface DataParser {
 	 * @return
 	 */
 	String fileExtensionName();
-
-	/**
-	 * 格式化
-	 * @param text
-	 * @return
-	 */
-	String format(String text);
 }

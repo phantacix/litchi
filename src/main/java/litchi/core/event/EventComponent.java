@@ -10,7 +10,7 @@ import litchi.core.Litchi;
 import litchi.core.components.Component;
 import litchi.core.event.annotation.EventReceive;
 import litchi.core.exception.CoreException;
-import litchi.core.router.annoation.Route;
+import litchi.core.router.annotation.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import litchi.core.common.extend.ASMMethod;
@@ -117,7 +117,12 @@ public class EventComponent implements Component {
         Map<Integer, List<ASMMethod>> maps = this.eventInfoMaps.get(event.name);
         List<ASMMethod> list = maps.get(event.threadId);
         for (ASMMethod method : list) {
-            method.invoke(event);
+        	try {
+        		method.invoke(event);
+			} catch (Exception e) {
+				LOGGER.error("event execute error. event={}", event.name);
+				LOGGER.error("", e);
+			}
         }
     }
 

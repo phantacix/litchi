@@ -5,19 +5,30 @@
 //-------------------------------------------------
 package litchi.core.dispatch.disruptor;
 
+import com.lmax.disruptor.SleepingWaitStrategy;
+import com.lmax.disruptor.WaitStrategy;
+
 public class ThreadInfo {
-	
-	public String name;
 
-	public int threadId;
+    public String name;
 
-	public int threadNum;
+    public int threadId;
 
-	public static ThreadInfo valueOf(String name, int threadId, int threadNum) {
-		ThreadInfo info = new ThreadInfo();
-		info.name = name;
-		info.threadId = threadId;
-		info.threadNum = threadNum;
-		return info;
-	}
+    public int threadNum;
+
+    public WaitStrategy waitStrategy;
+
+    public static ThreadInfo valueOf(String name, int threadId, int threadNum) {
+        return valueOf(name, threadId, threadNum, new SleepingWaitStrategy());
+    }
+
+    public static ThreadInfo valueOf(String name, int threadId, int threadNum, WaitStrategy waitStrategy) {
+        ThreadInfo info = new ThreadInfo();
+        info.name = name;
+        info.threadId = threadId;
+        info.threadNum = threadNum;
+        info.waitStrategy = waitStrategy;
+        return info;
+    }
+
 }

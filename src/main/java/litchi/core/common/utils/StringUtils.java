@@ -135,7 +135,25 @@ public class StringUtils {
 	}
 
 
-
+	public static String format(String str, String... args) {
+		StringBuilder builder = new StringBuilder(str);
+		
+		int index = builder.indexOf("{}");
+		int i = 0;
+		while (index > -1) {
+			if (args.length < i + 1) {
+				break;
+			}
+			String arg = args[i];
+			builder.replace(index, index + 2, arg);
+			
+			i++;
+			index = builder.indexOf("{}");
+		}
+		
+		return builder.toString();
+	}
+	
 	/**
 	 * 用大括号"{}"为占位符，填充字符串
 	 * @param str

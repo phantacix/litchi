@@ -165,7 +165,7 @@
 //	}
 //
 //	@Override
-//	public String format(String text) {
+//	public String content(String text) {
 //		return text;
 //	}
 //}

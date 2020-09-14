@@ -2,9 +2,6 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
 tasks.withType(JavaCompile) {
 	options.encoding = "UTF-8"
 }
@@ -19,7 +16,7 @@ repositories {
 dependencies {
 
 	compile group: 'io.netty', name: 'netty-all', version: '4.1.17.Final'
-	compile group: 'com.lmax', name: 'disruptor', version: '3.3.7'
+	compile group: 'com.lmax', name: 'disruptor', version: '3.4.2'
 	compile group: 'com.esotericsoftware.reflectasm', name: 'reflectasm', version: '1.09'
 	compile group: 'com.alibaba', name: 'fastjson', version: '1.2.58'
 
@@ -35,11 +32,14 @@ dependencies {
 	compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
 	compile group: 'ch.qos.logback', name: 'logback-core', version: '1.2.3'
 
-	compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.13'
+	compile group: 'mysql', name: 'mysql-connector-java', version: '5.1.48'
 	compile group: 'com.zaxxer', name: 'HikariCP', version: '3.3.1'
 	compile group: 'commons-dbutils', name: 'commons-dbutils', version: '1.7'
 
 	compile group: 'redis.clients', name: 'jedis', version: '2.9.0'
+	compile group: 'org.xerial.snappy', name: 'snappy-java', version: '1.1.4'
+
+	compile group: 'commons-io', name: 'commons-io', version: '2.6'
 }
 
 jar {

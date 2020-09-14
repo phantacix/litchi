@@ -12,19 +12,19 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import litchi.core.Litchi;
+import litchi.core.common.NodeInfo;
 import litchi.core.exception.RpcException;
 import litchi.core.net.rpc.RpcConfig;
+import litchi.core.net.rpc.codec.RpcDecoder;
+import litchi.core.net.rpc.codec.RpcEncoder;
 import litchi.core.net.rpc.handler.GameEventHandler;
 import litchi.core.net.rpc.handler.ResponseHandler;
 import litchi.core.net.rpc.handler.RpcCallbackHandler;
 import litchi.core.net.rpc.packet.RequestPacket;
 import litchi.core.net.rpc.packet.RpcCallbackPacket;
+import litchi.core.net.rpc.packet.RpcPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import litchi.core.common.NodeInfo;
-import litchi.core.net.rpc.packet.RpcPacket;
-import litchi.core.net.rpc.codec.RpcDecoder;
-import litchi.core.net.rpc.codec.RpcEncoder;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
@@ -108,7 +108,6 @@ public class NettyRpcClient {
     public void writeRpcPacket(Object packet) {
         this.channelFuture.channel().writeAndFlush(new RpcPacket<>(packet));
     }
-
 
     public void send(RequestPacket requestPacket, RpcCallbackContext context) {
         if (context != null && context.rpcCallback != null) {

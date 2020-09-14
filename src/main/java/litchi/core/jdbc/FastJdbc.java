@@ -34,11 +34,11 @@ import java.util.*;
 public class FastJdbc implements Component {
     private static final Logger LOGGER = LoggerFactory.getLogger(FastJdbc.class);
 
-    private static SelectStatement selectSql = new SelectStatement();
-    private static DeleteStatement delSql = new DeleteStatement();
-    private static InsertStatement insertSql = new InsertStatement();
-    private static ReplaceIntoStatement replaceSql = new ReplaceIntoStatement();
-    private static UpdateStatement updateSql = new UpdateStatement();
+    public static SelectStatement selectSql = new SelectStatement();
+    public static DeleteStatement delSql = new DeleteStatement();
+    public static InsertStatement insertSql = new InsertStatement();
+    public static ReplaceIntoStatement replaceSql = new ReplaceIntoStatement();
+    public static UpdateStatement updateSql = new UpdateStatement();
 
     /**
      * key:dbType,value:jdbc
@@ -80,10 +80,10 @@ public class FastJdbc implements Component {
         String host = config.getString("host");
         String userName = config.getString("userName");
         String password = config.getString("password");
-//                    int initialSize = config.getInteger("initialSize");
-//                    int maxActive = config.getInteger("maxActive");
-//                    int maxIdle = config.getInteger("maxIdle");
-//                    int minIdle = config.getInteger("minIdle");
+//      int initialSize = config.getInteger("initialSize");
+//      int maxActive = config.getInteger("maxActive");
+//      int maxIdle = config.getInteger("maxIdle");
+//      int minIdle = config.getInteger("minIdle");
 
         HikariDataSource ds = new HikariDataSource();
         String jdbc = "jdbc:mysql://%s/%s?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC";
@@ -105,7 +105,7 @@ public class FastJdbc implements Component {
         return jdbcMaps.containsKey(dbType);
     }
 
-    private <T extends Table<?>> QueryRunner getJdbcTemplate(Class<T> tableClazz) {
+    public <T extends Table<?>> QueryRunner getJdbcTemplate(Class<T> tableClazz) {
         TableInfo tableInfo = SuperTable.getTableInfo(tableClazz);
 
         QueryRunner queryRunner = jdbcMaps.get(tableInfo.annotation().dbType());
@@ -141,6 +141,38 @@ public class FastJdbc implements Component {
             i++;
         }
         return result;
+    }
+
+    public <T extends Table<?>> int[] batchUpdate(Collection<T> tables) {
+        if (tables == null || tables.isEmpty()) {
+            return null;
+        }
+
+        QueryRunner runner = null;
+        TableInfo info = null;
+        String sql = null;
+
+        try {
+
+            Object[][] param = new Object[tables.size()][];
+
+            int i = 0;
+            for (T t : tables) {
+                if (runner == null || info == null || sql == null) {
+                    runner = getJdbcTemplate(t.getClass());
+                    info = t.getTableInfo();
+                    sql = replaceSql.toSqlString(t.tableName(), info.buildDbColumns());
+                }
+
+                param[i] = t.writeData();
+                i++;
+            }
+
+            return runner.batch(sql, param);
+        } catch (Exception e) {
+            LOGGER.error("", e);
+            return null;
+        }
     }
 
     public <T extends Table<?>> int delete(T table) {

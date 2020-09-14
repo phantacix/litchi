@@ -20,7 +20,11 @@ public class DecimalColumn extends AbstractColumnParser {
     @Override
     public void readColumn(Table<?> instance, TableInfo.TableColumnInfo columnInfo, ResultSet rs) throws SQLException {
         FieldAccess fieldAccess = instance.getTableInfo().fieldAccess;
-        fieldAccess.set(instance, columnInfo.fieldName, rs.getObject(columnInfo.aliasName));
+        Object obj = rs.getObject(columnInfo.aliasName);
+        if (obj != null) {
+        	fieldAccess.set(instance, columnInfo.fieldName, obj);
+		}
+        // 数据库中该字段为null时，使用对象中该字段的默认值
     }
 
     @Override

@@ -5,7 +5,6 @@
 //-------------------------------------------------
 package litchi.core.net.websocket;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -13,14 +12,13 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.timeout.IdleStateEvent;
 import litchi.core.Litchi;
+import litchi.core.dispatch.executor.RequestPacketExecutor;
+import litchi.core.event.sys.UserDisconnectEvent;
 import litchi.core.net.rpc.packet.RequestPacket;
 import litchi.core.net.session.GateSession;
 import litchi.core.net.session.GateSessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import litchi.core.common.utils.StringUtils;
-import litchi.core.dispatch.executor.RequestPacketExecutor;
-import litchi.core.event.sys.UserDisconnectEvent;
 
 @Sharable
 public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
@@ -38,7 +36,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
     public void channelRead0(ChannelHandlerContext ctx, WebSocketFrame frame) {
         GateSession session = sessionService.getSession(ctx);
         if (session == null) {
-            LOGGER.warn("session not exist. channelId={}", ctx.channel().id().asShortText());
+            LOGGER.warn("session not exist. channelId={}", ctx.channel().id().asLongText());
             ctx.close();
             return;
         }
@@ -51,6 +49,11 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
 
         //如果是本服务器请求则执行，否则，转发到具体的服务器执行
         if (packet.nodeType().equals(litchi.currentNode().getNodeType())) {
+            if (litchi.route().getRouteInfo(packet.route) == null) {
+                LOGGER.warn("route not found. packet:{}", packet);
+                return;
+            }
+
             litchi.dispatch().publish(new RequestPacketExecutor(litchi, session, packet));
             return;
         }
@@ -63,16 +66,15 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         litchi.rpc().forward(session, packet);
     }
 
-
     // ----------------------------------------------------------------------------------
-    // 服务端[接收]包结构解析
+    // 服务端[接收]包结构解析 RequestPacket.java
     // messageId	short       2	 	客户端生成的透传消息id(用于客户端回调用)
     // routeLen     byte        1       路由名称长度
     // route        byte[]      n       路由名称
     // bodyLen      short       2       请求的消息数据长度
     // body         byte[]      n       请求的消息数据(结构可使用json、pb等第三方序列库)
     // ----------------------------------------------------------------------------------
-    // 服务端[响应]包结构解析
+    // 服务端[响应]包结构解析 ResponsePacket.java
     // messageId	short       2       客户端的透传消息id(原路返回)
     // routeLen     byte        1       路由名称长度
     // route        byte[]      n       路由名称
@@ -89,37 +91,12 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
      */
     public RequestPacket parseRequestPacket(GateSession session, WebSocketFrame frame) {
         if (frame instanceof BinaryWebSocketFrame) {
-            ByteBuf message = frame.content();
-            short messageId = message.readShort();
-            byte routeLen = message.readByte();
-            byte[] routeBytes = new byte[routeLen];
-            message.readBytes(routeBytes);
-            String route = new String(routeBytes);
-
-            short bodyLen = message.readShort();
-            byte[] body = new byte[bodyLen];
-            message.readBytes(body);
-
-//			long crc = message.readLong();
-//			byte[] array = message.array();
-//			//数据包正确性验证
-//			if (crc != CRCUtils.calculateCRC(Parameters.CRC32, array, 0, array.length - 8)) {
-//				LOGGER.error("request packet crc error. crc={} array={}", crc, Arrays.toString(array));
-//				return;
-//			}
-
-            //验证route，踢掉无用的session
-            if (StringUtils.isBlank(route)) {
-                LOGGER.error("route value is null.");
+            RequestPacket requestPacket = RequestPacket.valueOfHandler(frame, session.uid());
+            if (!requestPacket.validateRoute()) {
+                LOGGER.error("route value is error. route = {}", requestPacket.route);
                 return null;
             }
-
-            if (route.split("\\.").length != 3) {
-                LOGGER.error("route value is error. route = {}", route);
-                return null;
-            }
-
-            return RequestPacket.valueOfHandler(messageId, route, session.uid(), body);
+            return requestPacket;
         }
 
         LOGGER.error("unsupported frame type: {}", frame.getClass().getName());
@@ -150,7 +127,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         try {
-            String channelId = ctx.channel().id().asShortText();
+            String channelId = ctx.channel().id().asLongText();
             GateSession session = sessionService.getSession(ctx);
             if (session == null) {
                 return;
@@ -185,13 +162,13 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         if (evt instanceof IdleStateEvent) {
             ctx.close();
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Channel idle. {}", ctx.channel().id().asShortText());
+                LOGGER.debug("Channel idle. {}", ctx.channel().id().asLongText());
             }
         }
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         LOGGER.error("ip:{} {}", ctx.channel().remoteAddress(), cause.getMessage());
         LOGGER.error("", cause);
     }

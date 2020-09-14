@@ -1,21 +1,20 @@
 package litchi.core;
 
 import com.alibaba.fastjson.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import litchi.core.common.Schedule;
 import litchi.core.common.NodeInfo;
+import litchi.core.common.Schedule;
 import litchi.core.common.extend.ObjectReference;
 import litchi.core.common.logback.LogUtils;
 import litchi.core.common.utils.JsonUtils;
+import litchi.core.common.utils.PathUtils;
 import litchi.core.components.Component;
 import litchi.core.components.ComponentCallback;
 import litchi.core.components.ComponentFeature;
 import litchi.core.components.NetComponent;
 import litchi.core.dataconfig.DataConfig;
-import litchi.core.dataconfig.StorageDataConfig;
+import litchi.core.dataconfig.DataConfigComponent;
 import litchi.core.dbqueue.DBQueue;
-import litchi.core.dbqueue.DBQueueComponent;
+import litchi.core.dbqueue.SQLQueueComponent;
 import litchi.core.dispatch.Dispatcher;
 import litchi.core.dispatch.DispatcherComponent;
 import litchi.core.dispatch.disruptor.ThreadInfo;
@@ -26,13 +25,17 @@ import litchi.core.net.session.GateSessionService;
 import litchi.core.net.session.NodeSessionService;
 import litchi.core.redis.RedisComponent;
 import litchi.core.router.RouteComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * create litchi
+ *
  * @author 0x737263
  */
 public class Litchi {
@@ -43,7 +46,7 @@ public class Litchi {
     private boolean debug;
 
     private String rootConfigPath;
-    private String envPath;
+    private String envDir;
     private String[] basePackages;
     private String envName;
 
@@ -86,24 +89,35 @@ public class Litchi {
         return ref.get();
     }
 
+    public static Litchi createApp(String configPath, String envDir, String envName, String nodeId) throws Exception {
+        ref.set(new Litchi(configPath, envDir, envName, nodeId));
+        return ref.get();
+    }
+
     /**
-     * @param configPath    配置文件根路径
-     * @param envPath       基于configPath根路径的环境目录
-     * @param nodeId        服务器结点id
+     * @param configPath 配置文件根路径
+     * @param envDir     基于configPath根路径的环境目录
+     * @param nodeId     服务器结点id
      */
-    private Litchi(String configPath, String envPath, String envName, String nodeId) throws Exception {
+    private Litchi(String configPath, String envDir, String envName, String nodeId) throws Exception {
         this.rootConfigPath = configPath;
-        this.envPath = envPath;
+        this.envDir = envDir;
         this.envName = envName;
 
-        if (this.rootConfigPath == null || this.envPath == null || this.envName == null || nodeId == null) {
+        if (this.rootConfigPath == null || this.envDir == null || this.envName == null || nodeId == null) {
             StringBuilder sb = new StringBuilder();
             sb.append("litchi VM options config error...\n");
-            sb.append("-Dlitchi.config      \t配置文件相对根路径\n");
-            sb.append("-Dlitchi.env         \t运行环境名称\n");
-            sb.append("-Dlitchi.nodeid      \t当前服务器的结点id\n");
+            sb.append("-Dlitchi.config      \t 配置文件相对根路径.  eg. -Dlitchi.config=config \n");
+            sb.append("-Dlitchi.env         \t运行环境名称.  eg. -Dlitchi.env=local \n");
+            sb.append("-Dlitchi.nodeid      \t当前服务器的结点id.  eg. -Dlitchi.nodeid=gate-1 \n");
             //sb.append("-Dadmin.resources    \tweb容器资源文件相对路径\n");
             throw new Exception(sb.toString());
+        }
+
+        //check env path
+        File path = new File(getEnvPath());
+        if (!path.isDirectory()) {
+            throw new Exception(String.format("file:%s  is not directory.", getEnvPath()));
         }
 
         //init logback.xml configure
@@ -174,13 +188,8 @@ public class Litchi {
         return this;
     }
 
-//    public litchi setRoute() {
-//        this.addComponent(new RouteComponent(this));
-//        return this;
-//    }
-
     public Litchi setDataConfig() {
-        this.setDataConfig(new StorageDataConfig(this));
+        this.setDataConfig(new DataConfigComponent(this));
         return this;
     }
 
@@ -190,7 +199,7 @@ public class Litchi {
     }
 
     public Litchi setDBQueue() {
-        this.setDBQueue(new DBQueueComponent(this));
+        this.setDBQueue(new SQLQueueComponent(this));
         return this;
     }
 
@@ -288,15 +297,6 @@ public class Litchi {
     private void shutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 
-            /**
-             * shutdownHook未处理完善
-             * 1、集成maintain状态功能
-             * 2、关闭对外server服务，http、websocket
-             * 3、断开rpc client服务
-             * 4、关闭rpc server服务
-             * 5、停服、进程消失
-             */
-
             long stopTime = System.currentTimeMillis();
 
             this.schedule.shutdown();
@@ -369,7 +369,7 @@ public class Litchi {
     }
 
     public String getEnvPath() {
-        return this.rootConfigPath + "/" + this.envPath + "/" + this.envName;
+        return PathUtils.combine(this.rootConfigPath, this.envDir, this.envName);
     }
 
     public String getEnvName() {
@@ -416,8 +416,8 @@ public class Litchi {
         return this.currentNode;
     }
 
-    public NodeInfo getServerInfo(String serverType, String serverId) {
-        Collection<NodeInfo> serverInfoCollection = getServerInfoList(serverType);
+    public NodeInfo getNodeInfo(String serverType, String serverId) {
+        Collection<NodeInfo> serverInfoCollection = getNodeInfoList(serverType);
         for (NodeInfo serverInfo : serverInfoCollection) {
             if (serverInfo.getNodeId().equals(serverId)) {
                 return serverInfo;
@@ -426,7 +426,7 @@ public class Litchi {
         return null;
     }
 
-    public List<NodeInfo> getServerInfoList(String serverType) {
+    public List<NodeInfo> getNodeInfoList(String serverType) {
         return this.nodesInfo.getOrDefault(serverType, new ArrayList<>());
     }
 
@@ -459,5 +459,4 @@ public class Litchi {
         }
         return this.schedule;
     }
-
 }

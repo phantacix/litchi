@@ -5,33 +5,41 @@
 //-------------------------------------------------
 package litchi.core.jdbc.column;
 
-import com.alibaba.fastjson.JSON;
-import com.esotericsoftware.reflectasm.FieldAccess;
-import litchi.core.jdbc.table.Table;
-import litchi.core.jdbc.table.TableInfo;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.esotericsoftware.reflectasm.FieldAccess;
+
+import litchi.core.jdbc.table.Table;
+import litchi.core.jdbc.table.TableInfo;
 
 /**
- * @author 0x737263
+ *
+ * @author paopao
+ * 2020-03-26
  */
-public class ListColumn extends AbstractColumnParser {
+public class SetColumn extends AbstractColumnParser {
     @Override
     public void readColumn(Table<?> instance, TableInfo.TableColumnInfo columnInfo, ResultSet rs) throws SQLException {
         FieldAccess fieldAccess = instance.getTableInfo().fieldAccess;
 
-        byte[] jsonBytes = rs.getBytes(columnInfo.aliasName);
-        if (jsonBytes != null && jsonBytes.length > 0) {
-            Class<?> valueType = columnInfo.getColumnType(1);
-            List<?> value = JsonEntityParser.parseArray(jsonBytes, valueType);
+        byte[] bytes = rs.getBytes(columnInfo.aliasName);
+        if (bytes != null && bytes.length > 0) {
+        	Class<?> valueType = columnInfo.getColumnType(1);
+            List<?> value = JsonEntityParser.parseArray(bytes, valueType);
             @SuppressWarnings("unchecked")
-            List<Object> list = (List<Object>) fieldAccess.get(instance, columnInfo.fieldName);
-            if (list != null) {
-                list.addAll(value);
+            Set<Object> set = (Set<Object>) fieldAccess.get(instance, columnInfo.fieldName);
+            if (set != null) {
+                set.addAll(value);
             } else {
+            	set = new CopyOnWriteArraySet<Object>();
+            	set.addAll(value);
                 fieldAccess.set(instance, columnInfo.fieldName, value);
             }
         }
@@ -42,7 +50,7 @@ public class ListColumn extends AbstractColumnParser {
         if (fieldValue == null) {
             writeList.add("");
         } else {
-            String jsonString = JSON.toJSONString(fieldValue);
+            String jsonString = JSON.toJSONString(fieldValue, SerializerFeature.IgnoreNonFieldGetter);
             writeList.add(jsonString);
         }
     }

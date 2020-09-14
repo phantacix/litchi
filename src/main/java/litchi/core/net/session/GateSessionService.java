@@ -6,6 +6,8 @@
 package litchi.core.net.session;
 
 import io.netty.channel.ChannelHandlerContext;
+import litchi.core.Litchi;
+import litchi.core.event.sys.UserDisconnectEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import litchi.core.common.Schedule;
@@ -38,11 +40,24 @@ public class GateSessionService {
 
         schedule.addEveryMillisecond(() -> {
             long now = ServerTime.timeMillis();
+
+            //客户端超过120_000ms没有心跳则断开连接
             for (Entry<Long, OnlineSession> entry : onlineMaps.entrySet()) {
                 if (now - entry.getValue().heartTime > 120_000) {
-                    onlineMaps.remove(entry.getKey());
-                    LOGGER.info("remove timeout online session. uid={} sessionId={}", entry.getKey(), entry.getValue().sessionId);
-                    removeOnlineSession(entry.getValue().sessionId);
+
+                    long uid = entry.getKey();
+                    OnlineSession onlineSession = entry.getValue();
+
+                    removeOnlineSession(onlineSession.sessionId);
+
+                    GateSession gateSession = getSession(onlineSession.sessionId);
+                    if (gateSession != null) {
+                        // 抛出登出事件
+                        UserDisconnectEvent e = new UserDisconnectEvent(gateSession.uid(), gateSession.getNodeId());
+                        Litchi.call().event().post(e);
+                    }
+
+                    LOGGER.info("remove timeout online session. uid={} sessionId={}", uid, onlineSession.sessionId);
                 }
             }
         }, 1000 * 6);
@@ -74,7 +89,7 @@ public class GateSessionService {
     }
 
     public GateSession getSession(ChannelHandlerContext ctx) {
-        return getSession(ctx.channel().id().asShortText());
+        return getSession(ctx.channel().id().asLongText());
     }
 
     public GateSession getSession(String sessionId) {

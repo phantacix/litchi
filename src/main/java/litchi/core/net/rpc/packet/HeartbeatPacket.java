@@ -6,7 +6,6 @@
 package litchi.core.net.rpc.packet;
 
 import litchi.core.common.utils.ServerTime;
-import litchi.core.common.utils.ServerTime;
 
 /**
  * @author 0x737263

@@ -6,22 +6,20 @@
 package litchi.core.dataconfig.parse;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import litchi.core.common.utils.StringUtils;
-import litchi.core.dataconfig.annotation.FieldName;
-import litchi.core.dataconfig.annotation.IndexPK;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 
 import litchi.core.common.utils.StringUtils;
 import litchi.core.dataconfig.ConfigAdapter;
@@ -68,7 +66,7 @@ public class JSONDataParser implements DataParser {
 							LOGGER.warn("field not found in json file, class:{} fileName={}", className, fieldName);
 							continue;
 						}
-						Object typeValue = getTypeValue(value.toString(), field.getType());
+						Object typeValue = getTypeValue(value.toString(), field);
 						field.setAccessible(true);
 						field.set(instance, typeValue);
 						field.setAccessible(false);
@@ -85,7 +83,8 @@ public class JSONDataParser implements DataParser {
 		return list;
 	}
 
-	private Object getTypeValue(String object, Class<?> type) {
+	private Object getTypeValue(String object, Field field) {
+		Class<?> type = field.getType();
 		if (type == int.class || type == Integer.class) {
 			if (object.equals("")) {
 				return 0;
@@ -95,7 +94,7 @@ public class JSONDataParser implements DataParser {
 			} catch (Exception e) {
 				LOGGER.error("", e);
 			}
-			
+
 		} else if (type == long.class || type == Long.class) {
 			if (object.equals("")) {
 				return 0L;
@@ -110,6 +109,64 @@ public class JSONDataParser implements DataParser {
 			}
 		} else if (type == String.class) {
 			return object;
+		} else if (type == Map.class) {
+			String str = object.toString();
+			if (str == null || str.equals("")) {
+				return new HashMap<>();
+			}
+			@SuppressWarnings("unchecked")
+			HashMap<Object, Object> map = JSON.parseObject(str, HashMap.class);
+			HashMap dataMap = new HashMap();
+			Type genericType = field.getGenericType();
+			if(genericType instanceof ParameterizedType){   
+				ParameterizedType pt = (ParameterizedType) genericType;
+				//得到泛型里的class类型对象  
+				Class<?> keyClazz = (Class<?>)pt.getActualTypeArguments()[0]; 
+				Class<?> valueClazz = (Class<?>)pt.getActualTypeArguments()[1]; 
+				for (Entry<Object, Object> entry : map.entrySet()) {
+					Object key = null;
+					Object value = null;
+					if (keyClazz == Integer.class) {
+						key = Integer.valueOf(entry.getKey().toString());
+					} else {
+						LOGGER.error("unsuport map key type. class={}", keyClazz);
+					}
+					if (valueClazz == Integer.class) {
+						value = Integer.valueOf(entry.getValue().toString());
+					} else if (valueClazz == String.class) {
+						value = entry.getValue().toString();
+					} else {
+						LOGGER.error("unsuport map value type. class={}", valueClazz);
+					}
+					dataMap.put(key, value);
+				}
+			}
+			return dataMap;
+		} else if (type == List.class) {
+			String str = object.toString();
+			if (str == null || str.equals("")) {
+				return new ArrayList<>();
+			}
+			@SuppressWarnings("unchecked")
+			ArrayList<Object> list = JSON.parseObject(str, ArrayList.class);
+			ArrayList dataList = new ArrayList();
+			Type genericType = field.getGenericType();
+			if(genericType instanceof ParameterizedType){   
+				ParameterizedType pt = (ParameterizedType) genericType;
+				//得到泛型里的class类型对象  
+				Class<?> valueClazz = (Class<?>)pt.getActualTypeArguments()[0]; 
+				for (Object value : list) {
+					if (valueClazz == Integer.class) {
+						value = Integer.valueOf(value.toString());
+					} else if (valueClazz == String.class) {
+						value = value.toString();
+					} else {
+						LOGGER.error("unsuport map value type. class={}", valueClazz);
+					}
+					dataList.add(value);
+				}
+			}
+			return dataList;
 		} else if (type == short.class || type == Short.class) {
 			if (object.equals("")) {
 				return (short) 0;
@@ -145,12 +202,5 @@ public class JSONDataParser implements DataParser {
 	@Override
 	public String fileExtensionName() {
 		return FILE_EXT_NAME;
-	}
-
-	@Override
-	public String format(String text) {
-		Object obj = JSON.parse(text);
-		String jsonString = JSON.toJSONString(obj, SerializerFeature.PrettyFormat);
-		return jsonString;
 	}
 }

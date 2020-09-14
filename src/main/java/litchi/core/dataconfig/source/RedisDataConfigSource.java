@@ -5,23 +5,20 @@
 //-------------------------------------------------
 package litchi.core.dataconfig.source;
 
-import java.util.Set;
-
+import com.alibaba.fastjson.JSONObject;
 import litchi.core.Constants;
 import litchi.core.Litchi;
 import litchi.core.common.utils.StringUtils;
+import litchi.core.dataconfig.DataConfigSource;
+import litchi.core.dataconfig.parse.DataParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSONObject;
-
-import litchi.core.dataconfig.DataConfigSource;
-import litchi.core.dataconfig.parse.DataParser;
+import java.util.Set;
 
 /**
  * 配置文件redis源
  * @author Paopao
- * 		   2018-08-01
  */
 public class RedisDataConfigSource implements DataConfigSource {
 	
@@ -88,21 +85,4 @@ public class RedisDataConfigSource implements DataConfigSource {
 		Set<String> configs = litchi.redis().hash().keys(getRedisKey());
 		return configs;
 	}
-
-	@Override
-	public String getConfig(String configName) {
-		String config = litchi.redis().hash().get(getRedisKey(), configName);
-		return config;
-	}
-
-	@Override
-	public void removeConfig(String configName) {
-		litchi.redis().hash().del(getRedisKey(), configName);
-	}
-
-	@Override
-	public void setConfig(String configName, String content) {
-		litchi.redis().hash().set(getRedisKey(), configName, content);
-	}
-
 }
