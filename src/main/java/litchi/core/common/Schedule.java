@@ -51,7 +51,6 @@ public class Schedule {
 	 */
 	public void addEverySecond(Runnable task, int rateSecond) {
 		executorService.scheduleAtFixedRate(task, 0, rateSecond, TimeUnit.SECONDS);
-		executorService.scheduleWithFixedDelay(task, 0, rateSecond, TimeUnit.SECONDS);
 	}
 
 	/**
