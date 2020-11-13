@@ -9,10 +9,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.esotericsoftware.reflectasm.FieldAccess;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import litchi.core.jdbc.table.Table;
 import litchi.core.jdbc.table.TableInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -56,15 +56,16 @@ public class MapColumn extends AbstractColumnParser {
                             LOGGER.error("不支持的map数据类型：{}", keyType);
                             continue;
                         }
-
                     } else {
                         key = obj;
                     }
+
                     try {
                         Object value = JsonEntityParser.parseJson(entry.getValue().toString(), valueType);
                         originMaps.put(key, value);
                     } catch (Exception e) {
-                        LOGGER.error("read column error. class={} field={}", instance.getTableInfo().clazz().getSimpleName(), columnInfo.fieldName);
+                        LOGGER.error("read column error. class={} field={} key={} value={}",
+                                instance.getTableInfo().clazz().getSimpleName(), columnInfo.fieldName, key, entry.getValue().toString());
                         LOGGER.error("", e);
                     }
                 }
