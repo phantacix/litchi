@@ -123,20 +123,11 @@ public class Schedule {
         c.set(Calendar.MINUTE, minutes);
         c.set(Calendar.SECOND, seconds);
         c.set(Calendar.MILLISECOND, 0);
-        // 如果调度时间小于当前时间,则调度时间往后延时一天
-        if (c.getTimeInMillis() < System.currentTimeMillis()) {
-            c.setTimeInMillis(c.getTimeInMillis() + DateUtils.DAY_MILLISECOND);
-        }
-        long startTime = c.getTimeInMillis();
-        if (hour == 24 && minutes == 0 && seconds == 0) {
-            // 对于跨天的任务延时2秒执行，防止在前一天的59秒就开始执行任务
-            startTime = startTime + 2000;
-        } else {
-            // 普通定时任务延时1秒执行
-            startTime = startTime + 1000;
-        }
-        long initialDelay = startTime - DateUtils.getNowMillis();
-        executorService.scheduleAtFixedRate(task, initialDelay, 24, TimeUnit.HOURS);
+
+        long delay = c.getTimeInMillis() - DateUtils.getNowMillis();
+        delay = delay > 0 ? delay : DateUtils.DAY_MILLISECOND + delay;
+
+        executorService.scheduleAtFixedRate(task, delay, DateUtils.DAY_MILLISECOND, TimeUnit.MILLISECONDS);
     }
 
     /**
