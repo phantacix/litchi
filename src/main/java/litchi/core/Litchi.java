@@ -299,7 +299,9 @@ public class Litchi {
 
             long stopTime = System.currentTimeMillis();
 
-            this.schedule.shutdown();
+            if (this.schedule != null) {
+                this.schedule.shutdown();
+            }
 
             this.componentsMap.forEach((name, component) -> {
                 try {
