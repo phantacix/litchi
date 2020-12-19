@@ -74,7 +74,6 @@ public class Litchi {
      * key:class, value:Component
      */
     private Map<Class<? extends Component>, Component> componentsMap = new LinkedHashMap<>();
-    private List<Object> componentOrderList = new ArrayList<>();
 
     private GateSessionService sessionService = new GateSessionService();
     private NodeSessionService nodeSessionService = new NodeSessionService();
@@ -182,12 +181,13 @@ public class Litchi {
     }
 
     public Litchi addComponent(Component component) {
-        this.componentOrderList.add(component);
+        this.componentsMap.put(component.getClass(), component);
         return this;
     }
 
     public Litchi addComponent(ComponentFeature<Component> feature) {
-        this.componentOrderList.add(feature);
+        Component c = feature.createComponent(this);
+        this.componentsMap.put(c.getClass(), c);
         return this;
     }
 
@@ -267,23 +267,18 @@ public class Litchi {
      * @param callback
      */
     public void start(ComponentCallback... callback) {
-
         // order by execute component->start()
-        componentOrderList.forEach(item -> {
-            Component c = judgeComponent(item);
+        for (Component c : this.componentsMap.values()) {
             logger.debug("[component->start()] name = {}", c.name());
             c.start();
-            this.componentsMap.put(c.getClass(), c);
-        });
-
-        //clear temp list
-        componentOrderList.clear();
+        }
 
         // execute component->afterStart()
-        this.componentsMap.forEach((key, value) -> {
-            logger.debug("[component->afterStart()] name = {}", value.name());
-            value.afterStart();
-        });
+
+        for (Component c : this.componentsMap.values()) {
+            logger.debug("[component->afterStart()] name = {}", c.name());
+            c.afterStart();
+        }
 
         // execute callback
         for (ComponentCallback c : callback) {
