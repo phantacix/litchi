@@ -49,6 +49,7 @@ public class Litchi {
     private String envDir;
     private String[] basePackages;
     private String envName;
+    private String nodeId;
 
     /**
      * litchi.json json object
@@ -85,12 +86,16 @@ public class Litchi {
     }
 
     public static Litchi createApp(String configPath, String envName, String nodeId) throws Exception {
-        ref.set(new Litchi(configPath, "env", envName, nodeId));
+        Litchi litchi = new Litchi(configPath, "env", envName, nodeId);
+        ref.set(litchi);
+        litchi.init();
         return ref.get();
     }
 
     public static Litchi createApp(String configPath, String envDir, String envName, String nodeId) throws Exception {
-        ref.set(new Litchi(configPath, envDir, envName, nodeId));
+        Litchi litchi = new Litchi(configPath, envDir, envName, nodeId);
+        ref.set(litchi);
+        litchi.init();
         return ref.get();
     }
 
@@ -103,14 +108,14 @@ public class Litchi {
         this.rootConfigPath = configPath;
         this.envDir = envDir;
         this.envName = envName;
+        this.nodeId = nodeId;
 
-        if (this.rootConfigPath == null || this.envDir == null || this.envName == null || nodeId == null) {
+        if (this.rootConfigPath == null || this.envDir == null || this.envName == null || this.nodeId == null) {
             StringBuilder sb = new StringBuilder();
             sb.append("litchi VM options config error...\n");
             sb.append("-Dlitchi.config      \t 配置文件相对根路径.  eg. -Dlitchi.config=config \n");
             sb.append("-Dlitchi.env         \t运行环境名称.  eg. -Dlitchi.env=local \n");
             sb.append("-Dlitchi.nodeid      \t当前服务器的结点id.  eg. -Dlitchi.nodeid=gate-1 \n");
-            //sb.append("-Dadmin.resources    \tweb容器资源文件相对路径\n");
             throw new Exception(sb.toString());
         }
 
@@ -119,7 +124,9 @@ public class Litchi {
         if (!path.isDirectory()) {
             throw new Exception(String.format("file:%s  is not directory.", getEnvPath()));
         }
+    }
 
+    private void init() throws Exception {
         //init logback.xml configure
         String logbackPath = Paths.get(getEnvPath(), Constants.File.LOG_BACK).toString();
         LogUtils.loadFileConfig(logbackPath);
@@ -127,10 +134,10 @@ public class Litchi {
         this.logger = LoggerFactory.getLogger(Litchi.class);
 
         logger.info("========== node launcher ==========");
-        logger.info("nodeId:{}, configPath:{}, envName:{}", nodeId, configPath, this.envName);
+        logger.info("nodeId:{}, configPath:{}, envName:{}", this.nodeId, this.rootConfigPath, this.envName);
 
-        loadlitchiConfig();
-        loadNodesConfig(nodeId);
+        loadLitchiConfig();
+        loadNodesConfig();
 
         // add default component
         addComponent(new EventComponent(this));
@@ -140,7 +147,7 @@ public class Litchi {
     /**
      * read litchi.json
      */
-    private void loadlitchiConfig() {
+    private void loadLitchiConfig() {
         this.litchiConfig = JsonUtils.read(getEnvPath(), Constants.File.LITCHI_DOT_JSON);
         //start BasePackage
         this.basePackages = JsonUtils.readStringArray(this.litchiConfig, Constants.Component.BASE_PACKAGES);
@@ -149,12 +156,10 @@ public class Litchi {
 
     /**
      * read nodes.json
-     *
-     * @param nodeId 当前结点id
      */
-    private void loadNodesConfig(String nodeId) {
+    private void loadNodesConfig() throws Exception {
         JSONObject jsonObject = JsonUtils.read(getEnvPath(), Constants.File.NODES_DOT_JSON);
-        this.nodesInfo.putAll(NodeInfo.getNodeMaps(jsonObject, nodeId));
+        this.nodesInfo.putAll(NodeInfo.getNodeMaps(jsonObject, this.nodeId));
 
         for (List<NodeInfo> list : nodesInfo.values()) {
             for (NodeInfo si : list) {
@@ -163,6 +168,7 @@ public class Litchi {
                 }
             }
         }
+
         if (this.currentNode == null) {
             List<String> idList = new ArrayList<>();
             for (List<NodeInfo> list : nodesInfo.values()) {
@@ -171,11 +177,8 @@ public class Litchi {
                 }
             }
 
-            logger.error("can not found current node. nodeId={} , {}", nodeId, idList);
-            System.exit(-1);
+            throw new Exception(String.format("can not found current node. nodeId=%s, %s", nodeId, idList));
         }
-
-        logger.info("node info config load complete!");
     }
 
     public Litchi addComponent(Component component) {
@@ -411,7 +414,7 @@ public class Litchi {
     }
 
     public String getNodeId() {
-        return this.currentNode.getNodeId();
+        return this.nodeId;
     }
 
     public NodeInfo currentNode() {

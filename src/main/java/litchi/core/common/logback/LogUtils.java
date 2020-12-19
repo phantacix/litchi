@@ -36,6 +36,5 @@ public class LogUtils {
         lc.reset();
         configurator.doConfigure(configFilePath);
         StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
-
     }
 }
