@@ -12,11 +12,16 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import litchi.core.Constants;
 import litchi.core.Litchi;
 import litchi.core.components.NetComponent;
+import litchi.core.exception.CoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
 
 public class WebSocketServer extends NetComponent {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketServer.class);
@@ -30,7 +35,11 @@ public class WebSocketServer extends NetComponent {
     private ChannelInitializer<SocketChannel> channelInitializer;
 
     public WebSocketServer(Litchi litchi) {
-        this(litchi, new WebSocketServerInitializer(litchi, false));
+        this(litchi, new WebSocketServerInitializer(litchi));
+    }
+
+    public WebSocketServer(Litchi litchi, SslContext sslContext) {
+        this(litchi, new WebSocketServerInitializer(litchi, sslContext));
     }
 
     public WebSocketServer(Litchi litchi, ChannelInitializer<SocketChannel> channelInitializer) {
@@ -39,6 +48,7 @@ public class WebSocketServer extends NetComponent {
         this.channelInitializer = channelInitializer;
     }
 
+    @Override
     public void start() {
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
@@ -61,6 +71,7 @@ public class WebSocketServer extends NetComponent {
         }
     }
 
+    @Override
     public void stop() {
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
@@ -74,5 +85,22 @@ public class WebSocketServer extends NetComponent {
     @Override
     public void afterStart() {
 
+    }
+
+    /**
+     * @param filePath *.pem file
+     * @param keyPath  *.key file
+     * @return
+     */
+    public static SslContext createSSLContext(String filePath, String keyPath) {
+        try {
+            File file = new File(filePath);
+            File key = new File(keyPath);
+
+            SslContext sslCtx = SslContextBuilder.forServer(file, key).build();
+            return sslCtx;
+        } catch (Exception ex) {
+            throw new CoreException("ssl context create fail. ", ex);
+        }
     }
 }

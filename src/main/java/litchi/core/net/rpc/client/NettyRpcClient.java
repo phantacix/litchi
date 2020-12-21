@@ -149,7 +149,7 @@ public class NettyRpcClient {
                 channelFuture.addListener((ChannelFutureListener) channelFuture -> RPC_LOGGER.debug("connection complete!"));
             }
         } catch (Exception e) {
-            RPC_LOGGER.error("----->connect fail. server info = {}", printInfo());
+            RPC_LOGGER.warn("----->connect fail. server info = {}", printInfo());
         }
     }
 

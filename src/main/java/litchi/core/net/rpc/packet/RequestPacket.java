@@ -63,6 +63,7 @@ public class RequestPacket {
         //route
         byte[] routeBytes = new byte[message.readByte()];
         message.readBytes(routeBytes);
+
         request.route = new String(routeBytes);
 
         //data

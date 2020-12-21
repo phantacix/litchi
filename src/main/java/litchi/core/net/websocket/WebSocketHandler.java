@@ -9,6 +9,7 @@ import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.timeout.IdleStateEvent;
 import litchi.core.Litchi;
@@ -34,36 +35,48 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, WebSocketFrame frame) {
-        GateSession session = sessionService.getSession(ctx);
-        if (session == null) {
-            LOGGER.warn("session not exist. channelId={}", ctx.channel().id().asLongText());
-            ctx.close();
-            return;
-        }
+        if (frame instanceof BinaryWebSocketFrame) {
 
-        RequestPacket packet = parseRequestPacket(session, frame);
-        if (packet == null) {
-            ctx.close();
-            return;
-        }
-
-        //如果是本服务器请求则执行，否则，转发到具体的服务器执行
-        if (packet.nodeType().equals(litchi.currentNode().getNodeType())) {
-            if (litchi.route().getRouteInfo(packet.route) == null) {
-                LOGGER.warn("route not found. packet:{}", packet);
+            GateSession session = sessionService.getSession(ctx);
+            if (session == null) {
+                LOGGER.warn("session not exist. channelId={}", ctx.channel().id().asLongText());
+                ctx.close();
                 return;
             }
 
-            litchi.dispatch().publish(new RequestPacketExecutor(litchi, session, packet));
+            RequestPacket packet = parseRequestPacket(session, frame);
+            if (packet == null) {
+                ctx.close();
+                return;
+            }
+
+            //如果是本服务器请求则执行，否则，转发到具体的服务器执行
+            if (packet.nodeType().equals(litchi.currentNode().getNodeType())) {
+                if (litchi.route().getRouteInfo(packet.route) == null) {
+                    LOGGER.warn("route not found. packet:{}", packet);
+                    return;
+                }
+
+                litchi.dispatch().publish(new RequestPacketExecutor(litchi, session, packet));
+                return;
+            }
+
+            //如果没登陆则忽略其他提交的消息
+            if (session.uid() < 1) {
+                return;
+            }
+
+            litchi.rpc().forward(session, packet);
+        }
+
+        if (frame instanceof TextWebSocketFrame) {
+            TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
+            LOGGER.warn("unsupported frame type:TextWebSocketFrame text={} channelId={}",
+                    textFrame.text(), ctx.channel().id().asLongText());
             return;
         }
 
-        //如果没登陆则忽略其他提交的消息
-        if (session.uid() < 1) {
-            return;
-        }
-
-        litchi.rpc().forward(session, packet);
+        LOGGER.error("unsupported frame type: {}", frame.getClass().getName());
     }
 
     // ----------------------------------------------------------------------------------
@@ -85,28 +98,24 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
 
     /**
      * messageId(2) routeLen(1) route[routeLen] bodyLen(2) body[bodyLen]
+     *
      * @param session
      * @param frame
      * @return
      */
     public RequestPacket parseRequestPacket(GateSession session, WebSocketFrame frame) {
-        if (frame instanceof BinaryWebSocketFrame) {
-            RequestPacket requestPacket = RequestPacket.valueOfHandler(frame, session.uid());
-            if (!requestPacket.validateRoute()) {
-                LOGGER.error("route value is error. route = {}", requestPacket.route);
-                return null;
-            }
-            return requestPacket;
+        RequestPacket requestPacket = RequestPacket.valueOfHandler(frame, session.uid());
+        if (!requestPacket.validateRoute()) {
+            LOGGER.error("route value is error. route = {}", requestPacket.route);
+            return null;
         }
-
-        LOGGER.error("unsupported frame type: {}", frame.getClass().getName());
-        return null;
+        return requestPacket;
     }
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Connected: {}", ctx.channel());
+            LOGGER.debug("channelRegistered: {}", ctx.channel());
         }
 
         GateSession session = new GateSession(ctx.channel());
@@ -116,16 +125,27 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("channelUnregistered: {}", ctx.channel());
+        }
         super.channelUnregistered(ctx);
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("channelActive: {}", ctx.channel());
+        }
+
         super.channelActive(ctx);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("channelInactive: {}", ctx.channel());
+        }
+
         try {
             String channelId = ctx.channel().id().asLongText();
             GateSession session = sessionService.getSession(ctx);
@@ -136,6 +156,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
             //非登陆用户
             if (session.uid() < 1) {
                 // 移除session
+                LOGGER.debug("if (session.uid() < 1) remove online session");
                 sessionService.removeOnlineSession(channelId);
                 return;
             }
@@ -154,6 +175,14 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         }
 
         super.channelInactive(ctx);
+    }
+
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("channelReadComplete: {}", ctx.channel().id().asLongText());
+        }
+        super.channelReadComplete(ctx);
     }
 
     @Override
