@@ -58,6 +58,11 @@ public class DispatcherComponent implements Dispatcher {
     }
 
     @Override
+    public void beforeStop() {
+
+    }
+
+    @Override
     public void publish(BaseExecutor executor) {
         this.disruptorService.publish(executor);
     }

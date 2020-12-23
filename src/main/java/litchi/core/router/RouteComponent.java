@@ -55,6 +55,11 @@ public class RouteComponent implements Component {
     public void stop() {
     }
 
+    @Override
+    public void beforeStop() {
+
+    }
+
     public RouteInfo getRouteInfo(String route) {
         return routeMaps.get(route);
     }

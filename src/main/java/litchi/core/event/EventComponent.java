@@ -7,16 +7,16 @@ package litchi.core.event;
 
 import litchi.core.Constants;
 import litchi.core.Litchi;
+import litchi.core.common.extend.ASMMethod;
+import litchi.core.common.thread.NamedScheduleExecutor;
+import litchi.core.common.utils.StringUtils;
 import litchi.core.components.Component;
+import litchi.core.dispatch.executor.GameEventExecutor;
 import litchi.core.event.annotation.EventReceive;
 import litchi.core.exception.CoreException;
 import litchi.core.router.annotation.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import litchi.core.common.extend.ASMMethod;
-import litchi.core.common.thread.NamedScheduleExecutor;
-import litchi.core.common.utils.StringUtils;
-import litchi.core.dispatch.executor.GameEventExecutor;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -77,6 +77,10 @@ public class EventComponent implements Component {
     public void stop() {
     }
 
+    @Override
+    public void beforeStop() {
+    }
+
     public void post(GameEvent event) {
         if (event != null) {
             this.eventQueue.add(event);
@@ -117,12 +121,12 @@ public class EventComponent implements Component {
         Map<Integer, List<ASMMethod>> maps = this.eventInfoMaps.get(event.name);
         List<ASMMethod> list = maps.get(event.threadId);
         for (ASMMethod method : list) {
-        	try {
-        		method.invoke(event);
-			} catch (Exception e) {
-				LOGGER.error("event execute error. event={}", event.name);
-				LOGGER.error("", e);
-			}
+            try {
+                method.invoke(event);
+            } catch (Exception e) {
+                LOGGER.error("event execute error. event={}", event.name);
+                LOGGER.error("", e);
+            }
         }
     }
 

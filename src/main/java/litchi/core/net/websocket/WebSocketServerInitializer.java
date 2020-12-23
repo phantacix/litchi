@@ -12,13 +12,11 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
-import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.netty.handler.ssl.SslContext;
-import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import litchi.core.Litchi;
 
 public class WebSocketServerInitializer extends ChannelInitializer<SocketChannel> {
-    private static final String WEB_SOCKET_PATH = "/";
 
     private SslContext sslCtx;
     private ChannelHandler[] handlers;
@@ -45,15 +43,11 @@ public class WebSocketServerInitializer extends ChannelInitializer<SocketChannel
 
         pipeline.addLast(new HttpServerCodec());
         pipeline.addLast(new HttpObjectAggregator(65536));
-        pipeline.addLast(new WebSocketServerCompressionHandler());
-        pipeline.addLast(new IdleStateHandler(0, 0, 60));
-        pipeline.addLast(new WebSocketServerProtocolHandler(WEB_SOCKET_PATH, null, true));
-        pipeline.addLast(new WebSocketHandler(litchi));
+        pipeline.addLast(new ChunkedWriteHandler());
+        pipeline.addLast(new WebSocketServerProtocolHandler("/", null, true));
 
         if (handlers != null) {
-            for (ChannelHandler handler : handlers) {
-                pipeline.addLast(handler);
-            }
+            pipeline.addLast(handlers);
         }
     }
 }

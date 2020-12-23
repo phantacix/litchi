@@ -285,4 +285,9 @@ public class DataConfigComponent implements DataConfig {
         this.dataSource.destroy();
         LOGGER.info("Default Data Config is destroy!");
     }
+
+    @Override
+    public void beforeStop() {
+
+    }
 }

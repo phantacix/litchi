@@ -7,6 +7,7 @@ package litchi.core.net.websocket;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -35,11 +36,22 @@ public class WebSocketServer extends NetComponent {
     private ChannelInitializer<SocketChannel> channelInitializer;
 
     public WebSocketServer(Litchi litchi) {
-        this(litchi, new WebSocketServerInitializer(litchi));
+        this.litchi = litchi;
+        this.port = litchi.currentNode().getPort();
+        this.channelInitializer = new WebSocketServerInitializer(
+                litchi,
+                new WebSocketDecoder(),
+                new WebSocketEncoder(),
+                new WebSocketServerHandler(litchi)
+        );
     }
 
-    public WebSocketServer(Litchi litchi, SslContext sslContext) {
-        this(litchi, new WebSocketServerInitializer(litchi, sslContext));
+    public WebSocketServer(Litchi litchi, ChannelHandler... handlers) {
+        this(litchi, new WebSocketServerInitializer(litchi, handlers));
+    }
+
+    public WebSocketServer(Litchi litchi, SslContext sslContext, ChannelHandler... handlers) {
+        this(litchi, new WebSocketServerInitializer(litchi, sslContext, handlers));
     }
 
     public WebSocketServer(Litchi litchi, ChannelInitializer<SocketChannel> channelInitializer) {
@@ -75,6 +87,11 @@ public class WebSocketServer extends NetComponent {
     public void stop() {
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
+    }
+
+    @Override
+    public void beforeStop() {
+
     }
 
     @Override

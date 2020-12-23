@@ -18,5 +18,8 @@ public interface Component {
 
     void afterStart();
 
+    void beforeStop();
+
     void stop();
+
 }

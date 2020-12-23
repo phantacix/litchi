@@ -286,4 +286,9 @@ public class SQLQueueComponent implements DBQueue {
         }
         LOGGER.info("DefaultDBQueue shutdown complete!.....");
     }
+
+    @Override
+    public void beforeStop() {
+
+    }
 }

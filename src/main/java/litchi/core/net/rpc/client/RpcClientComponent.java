@@ -255,4 +255,10 @@ public class RpcClientComponent extends NetComponent {
         });
     }
 
+    @Override
+    public void beforeStop() {
+
+    }
+
+
 }

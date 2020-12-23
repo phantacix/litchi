@@ -355,9 +355,9 @@ public class FastJdbc implements Component {
     /**
      * 自定义sql查询
      *
-     * @param sql       sql语句
-     * @param values    条件值
-     * @param clazz     对应实体类
+     * @param sql    sql语句
+     * @param values 条件值
+     * @param clazz  对应实体类
      * @return
      */
     public <T extends Table<?>> List<T> getList(String sql, Object[] values, Class<T> clazz) {
@@ -503,5 +503,9 @@ public class FastJdbc implements Component {
 
     @Override
     public void stop() {
+    }
+
+    @Override
+    public void beforeStop() {
     }
 }

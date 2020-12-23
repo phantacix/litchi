@@ -10,7 +10,6 @@ import litchi.core.common.utils.PathUtils;
 import litchi.core.components.Component;
 import litchi.core.components.ComponentCallback;
 import litchi.core.components.ComponentFeature;
-import litchi.core.components.NetComponent;
 import litchi.core.dataconfig.DataConfig;
 import litchi.core.dataconfig.DataConfigComponent;
 import litchi.core.dbqueue.DBQueue;
@@ -301,28 +300,34 @@ public class Litchi {
                 this.schedule.shutdown();
             }
 
-            this.componentsMap.forEach((name, component) -> {
-                try {
-                    if (!(component instanceof NetComponent)) {
-                        logger.info("component:{} is stopping.", name);
-                        component.stop();
-                        logger.info("component:{} is stopped!", name);
-                    }
-                } catch (Exception e) {
-                    logger.error("{}", e);
-                }
-            });
 
-            this.componentsMap.forEach((name, component) -> {
+            //reverse process component list
+            List<Component> components = new ArrayList<>(this.componentsMap.values());
+            Collections.reverse(components);
+
+            //beforeStop()
+            for (Component c : components) {
                 try {
-                    if (component instanceof NetComponent) {
-                        logger.info("NetComponent:{} is stopping.", name);
-                        component.stop();
-                        logger.info("NetComponent:{} is stopped!", name);
-                    }
+                    logger.debug("[component->beforeStop()] name = {}", c.name());
+                    c.beforeStop();
                 } catch (Exception e) {
                     logger.error("{}", e);
                 }
+            }
+
+            //stop()
+            for (Component c : components) {
+                try {
+                    logger.debug("[component->stop()] name = {}", c.name());
+                    c.stop();
+                } catch (Exception e) {
+                    logger.error("{}", e);
+                }
+            }
+
+            //倒着停服务
+            this.componentsMap.forEach((name, component) -> {
+
             });
 
             logger.info("current node info: {}", this.currentNode);

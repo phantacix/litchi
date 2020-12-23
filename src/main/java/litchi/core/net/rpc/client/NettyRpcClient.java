@@ -18,7 +18,7 @@ import litchi.core.net.rpc.RpcConfig;
 import litchi.core.net.rpc.codec.RpcDecoder;
 import litchi.core.net.rpc.codec.RpcEncoder;
 import litchi.core.net.rpc.handler.GameEventHandler;
-import litchi.core.net.rpc.handler.ResponseHandler;
+import litchi.core.net.rpc.handler.ResponseToClientHandler;
 import litchi.core.net.rpc.handler.RpcCallbackHandler;
 import litchi.core.net.rpc.packet.RequestPacket;
 import litchi.core.net.rpc.packet.RpcCallbackPacket;
@@ -82,7 +82,7 @@ public class NettyRpcClient {
                         ch.pipeline().addLast(new RpcEncoder());
                         ch.pipeline().addLast(new GameEventHandler(litchi));
                         ch.pipeline().addLast(new RpcCallbackHandler(litchi, futureContext));
-                        ch.pipeline().addLast(new ResponseHandler(litchi));
+                        ch.pipeline().addLast(new ResponseToClientHandler(litchi));
                     }
                 })
                 .option(ChannelOption.TCP_NODELAY, true)
@@ -149,7 +149,7 @@ public class NettyRpcClient {
                 channelFuture.addListener((ChannelFutureListener) channelFuture -> RPC_LOGGER.debug("connection complete!"));
             }
         } catch (Exception e) {
-            RPC_LOGGER.warn("----->connect fail. server info = {}", printInfo());
+            RPC_LOGGER.debug("----->connect fail. server info = {}", printInfo());
         }
     }
 

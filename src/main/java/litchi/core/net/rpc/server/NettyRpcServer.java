@@ -15,6 +15,8 @@ import io.netty.handler.timeout.IdleStateHandler;
 import litchi.core.Constants;
 import litchi.core.Litchi;
 import litchi.core.components.NetComponent;
+import litchi.core.net.rpc.codec.RpcDecoder;
+import litchi.core.net.rpc.codec.RpcEncoder;
 import litchi.core.net.rpc.handler.GameEventHandler;
 import litchi.core.net.rpc.handler.HeartbeatHandler;
 import litchi.core.net.rpc.handler.RegisterNodeHandler;
@@ -22,8 +24,6 @@ import litchi.core.net.rpc.handler.RequestHandler;
 import litchi.core.net.session.NettySession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import litchi.core.net.rpc.codec.RpcDecoder;
-import litchi.core.net.rpc.codec.RpcEncoder;
 
 public class NettyRpcServer extends NetComponent {
     private static final Logger LOGGER = LoggerFactory.getLogger(NettyRpcServer.class);
@@ -31,7 +31,7 @@ public class NettyRpcServer extends NetComponent {
     private int port;
     private ChannelFuture channelFuture;
 
-//    private static EventLoopGroup workGroup = new NioEventLoopGroup();
+    //    private static EventLoopGroup workGroup = new NioEventLoopGroup();
     private static EventLoopGroup bossGroup = new NioEventLoopGroup();
 
     private Litchi litchi;
@@ -93,6 +93,11 @@ public class NettyRpcServer extends NetComponent {
         } finally {
             bossGroup.shutdownGracefully();
         }
+    }
+
+    @Override
+    public void beforeStop() {
+
     }
 
     public void push(String nodeType, String nodeId, Object msg) {
