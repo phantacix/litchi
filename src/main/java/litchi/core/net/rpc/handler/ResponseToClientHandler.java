@@ -17,12 +17,12 @@ import org.slf4j.LoggerFactory;
  * @author 0x737263
  */
 @Sharable
-public class ResponseHandler extends BaseChannelHandler<ResponsePacket> {
-    private static Logger LOGGER = LoggerFactory.getLogger(ResponseHandler.class);
+public class ResponseToClientHandler extends BaseChannelHandler<ResponsePacket> {
+    private static Logger LOGGER = LoggerFactory.getLogger(ResponseToClientHandler.class);
 
     private Litchi litchi;
 
-    public ResponseHandler(Litchi litchi) {
+    public ResponseToClientHandler(Litchi litchi) {
         super(ResponsePacket.class);
         this.litchi = litchi;
     }
@@ -35,7 +35,7 @@ public class ResponseHandler extends BaseChannelHandler<ResponsePacket> {
 
         GateSession session = litchi.sessionService().getOnlineSession(packet.uid);
         if (session != null) {
-            session.writeWebSocketFrame(packet.messageId, packet.route, packet.statusCode, packet.data);
+            session.writeToClient(packet);
         }
     }
 }

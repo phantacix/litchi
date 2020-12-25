@@ -93,4 +93,9 @@ public class HttpServer extends NetComponent {
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
     }
+
+    @Override
+    public void beforeStop() {
+
+    }
 }

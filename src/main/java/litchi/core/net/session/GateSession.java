@@ -5,18 +5,14 @@
 //-------------------------------------------------
 package litchi.core.net.session;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
-import litchi.core.Litchi;
 import litchi.core.common.StatusCode;
-import litchi.core.common.utils.SnappyHelper;
+import litchi.core.net.rpc.packet.RequestPacket;
+import litchi.core.net.rpc.packet.ResponsePacket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GateSession extends NettySession implements StatusCode {
     protected Logger LOGGER = LoggerFactory.getLogger(GateSession.class);
@@ -45,33 +41,12 @@ public class GateSession extends NettySession implements StatusCode {
         attr.set(nodeId);
     }
 
-    public void writeWebSocketFrame(short messageId, String route, short statusCode, byte[] data) {
-        ByteBuf buffer = Unpooled.buffer();
-        buffer.writeShort(messageId);
-        buffer.writeByte(route.length());
-        buffer.writeBytes(route.getBytes());
-        buffer.writeShort(statusCode);
-
-        if (data != null) {
-        	int compress = 0;
-        	byte[] sendData = data;
-        	Integer protoRespCompressSize = Litchi.call().config().getInteger("protoRespCompressSize");
-        	if (protoRespCompressSize == null) {
-        		protoRespCompressSize = 512;
-			}
-        	
-        	if (data.length > protoRespCompressSize) {
-        		compress = 1;
-        		sendData = SnappyHelper.compress(data);
-			}
-        	buffer.writeByte(compress);
-            buffer.writeShort(sendData.length);
-            buffer.writeBytes(sendData);
-        }
-        super.writeAndFlush(new BinaryWebSocketFrame(buffer));
+    public void writeToClient(RequestPacket packet, byte[] data) {
+        writeToClient(packet.toResponsePacket(data));
     }
 
-    public void writeWebSocketFrame(short messageId, String route, short statusCode) {
-        writeWebSocketFrame(messageId, route, statusCode, null);
+    public void writeToClient(ResponsePacket responsePacket) {
+        super.writeAndFlush(responsePacket);
     }
+
 }

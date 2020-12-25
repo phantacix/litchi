@@ -25,7 +25,7 @@ public class NettySession {
 
     public static AttributeKey<Long> UID = AttributeKey.valueOf("user.uid");
 
-    private Channel channel;
+    protected Channel channel;
 
     public NettySession(Channel channel) {
         Attribute<Long> attrId = channel.attr(SESSION_ID);

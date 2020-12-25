@@ -26,7 +26,7 @@ public class RedisComponent implements Component {
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisComponent.class);
 
     private String defaultRedisId;
-    
+
     private final Map<String, JedisPoolPack> jedisPoolMap = new HashMap<>();
     private final List<JedisPoolPack> sharedJedisPool = new ArrayList<>();
 
@@ -59,29 +59,29 @@ public class RedisComponent implements Component {
     }
 
     public RedisComponent(JSONArray redisArray, List<JSONObject> connectRedis) {
-    	Map<String, Integer> connectRedisIds = new HashMap<>();
-    	for (JSONObject serverRedis : connectRedis) {
-    		connectRedisIds.put(serverRedis.getString("id"), serverRedis.getInteger("dbIndex"));
-    	}
+        Map<String, Integer> connectRedisIds = new HashMap<>();
+        for (JSONObject serverRedis : connectRedis) {
+            connectRedisIds.put(serverRedis.getString("id"), serverRedis.getInteger("dbIndex"));
+        }
         List<RedisConfig> configList = new ArrayList<>();
         for (Object redis : redisArray) {
             JSONObject jsonObject = (JSONObject) redis;
             String redisId = jsonObject.getString("id");
             if (connectRedisIds.containsKey(redisId) == false) {
-				continue;
-			}
-            int dbIndex = connectRedisIds.get(redisId); 
-            
+                continue;
+            }
+            int dbIndex = connectRedisIds.get(redisId);
+
             configList.add(new RedisConfig(jsonObject, dbIndex));
             if (StringUtils.isBlank(defaultRedisId)) {
-            	defaultRedisId = redisId;
-			}
+                defaultRedisId = redisId;
+            }
         }
         init(defaultRedisId, configList);
     }
-    
+
     public RedisComponent(String defaultRedisId, Collection<RedisConfig> redisConfigs) {
-    	init(defaultRedisId, redisConfigs);
+        init(defaultRedisId, redisConfigs);
     }
 
     private void init(String defaultRedisId, Collection<RedisConfig> redisConfigs) {
@@ -99,14 +99,14 @@ public class RedisComponent implements Component {
                 }
                 GenericObjectPoolConfig config = new GenericObjectPoolConfig();
                 if (redisConfig.getMaxConnect() > 0) {
-                	config.setMaxTotal(redisConfig.getMaxConnect());
-				}
+                    config.setMaxTotal(redisConfig.getMaxConnect());
+                }
                 if (redisConfig.getMaxIdleConnect() > 0) {
-                	config.setMinIdle(redisConfig.getMaxIdleConnect());
-				}
+                    config.setMinIdle(redisConfig.getMaxIdleConnect());
+                }
                 if (redisConfig.getMinIdleConnect() > 0) {
-                	config.setMaxIdle(redisConfig.getMinIdleConnect());
-				}
+                    config.setMaxIdle(redisConfig.getMinIdleConnect());
+                }
                 JedisPool jedisPool;
                 if (redisConfig.hasPassword()) {
                     jedisPool = new JedisPool(config, redisConfig.getHost(), redisConfig.getPort(), 1000, redisConfig.getPassword());
@@ -115,10 +115,10 @@ public class RedisComponent implements Component {
                 }
                 JedisPoolPack jedisPoolPack = new JedisPoolPack(jedisPool, redisConfig);
                 jedisPoolMap.put(redisConfig.getKey(), jedisPoolPack);
-                
+
                 if (redisConfig.isShared()) {
-                	sharedJedisPool.add(jedisPoolPack);
-				}
+                    sharedJedisPool.add(jedisPoolPack);
+                }
                 LOGGER.info("jedis pool initialize, id={} addr: {}, port: {}", redisConfig.getKey(), redisConfig.getHost(), redisConfig.getPort());
             } catch (Exception e) {
                 LOGGER.error("", e);
@@ -133,7 +133,7 @@ public class RedisComponent implements Component {
 
     private Jedis getJedis(String redisKey) {
         try {
-        	JedisPoolPack jedisPoolPack = jedisPoolMap.get(redisKey);
+            JedisPoolPack jedisPoolPack = jedisPoolMap.get(redisKey);
             JedisPool jedisPool = jedisPoolPack.getJedisPool();
             if (jedisPool == null) {
                 LOGGER.error("jedis pool not found. key={} existKeys={}", redisKey, jedisPoolMap.keySet());
@@ -151,15 +151,15 @@ public class RedisComponent implements Component {
     public Jedis getJedis() {
         return getJedis(defaultRedisId);
     }
-    
+
     public RedisKeyValue kv(String redisId) {
-    	Jedis jedis = getJedis(redisId);
-    	RedisKeyValue kv = new RedisKeyValue(jedis);
-    	return kv;
+        Jedis jedis = getJedis(redisId);
+        RedisKeyValue kv = new RedisKeyValue(jedis);
+        return kv;
     }
-    
+
     public RedisKeyValue kv() {
-    	return kv(defaultRedisId);
+        return kv(defaultRedisId);
     }
 
     public RedisHash hash() {
@@ -194,19 +194,19 @@ public class RedisComponent implements Component {
     @Override
     public void start() {
         for (Map.Entry<String, JedisPoolPack> entry : jedisPoolMap.entrySet()) {
-        	Jedis jedis = null;
-        	try {
-        		LOGGER.debug("redis key:{} ping test.", entry.getKey());
-        		jedis = entry.getValue().getJedisPool().getResource();
-        		LOGGER.debug("ping ...");
-        		LOGGER.debug("redis key:{} ping result:{}", entry.getKey(), jedis.ping());
-			} catch (Exception e) {
-				LOGGER.error("", e);
-			} finally {
-				if (jedis != null) {
-					jedis.close();
-				}
-			}
+            Jedis jedis = null;
+            try {
+                LOGGER.debug("redis key:{} ping test.", entry.getKey());
+                jedis = entry.getValue().getJedisPool().getResource();
+                LOGGER.debug("ping ...");
+                LOGGER.debug("redis key:{} ping result:{}", entry.getKey(), jedis.ping());
+            } catch (Exception e) {
+                LOGGER.error("", e);
+            } finally {
+                if (jedis != null) {
+                    jedis.close();
+                }
+            }
         }
     }
 
@@ -220,14 +220,19 @@ public class RedisComponent implements Component {
 
     }
 
-	public RedisCommand shared(long id) {
-		if (sharedJedisPool.isEmpty()) {
-			LOGGER.warn("shared redis is empty. please config in litchi.");
-			return null;
-		}
-		int mod = (int) (id % sharedJedisPool.size());
-		JedisPoolPack jedisPoolPack = sharedJedisPool.get(mod);
-		Jedis jedis = jedisPoolPack.getJedis();
-		return new RedisCommand(jedis);
-	}
+    @Override
+    public void beforeStop() {
+
+    }
+
+    public RedisCommand shared(long id) {
+        if (sharedJedisPool.isEmpty()) {
+            LOGGER.warn("shared redis is empty. please config in litchi.");
+            return null;
+        }
+        int mod = (int) (id % sharedJedisPool.size());
+        JedisPoolPack jedisPoolPack = sharedJedisPool.get(mod);
+        Jedis jedis = jedisPoolPack.getJedis();
+        return new RedisCommand(jedis);
+    }
 }

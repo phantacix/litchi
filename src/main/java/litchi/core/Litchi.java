@@ -10,7 +10,6 @@ import litchi.core.common.utils.PathUtils;
 import litchi.core.components.Component;
 import litchi.core.components.ComponentCallback;
 import litchi.core.components.ComponentFeature;
-import litchi.core.components.NetComponent;
 import litchi.core.dataconfig.DataConfig;
 import litchi.core.dataconfig.DataConfigComponent;
 import litchi.core.dbqueue.DBQueue;
@@ -74,7 +73,6 @@ public class Litchi {
      * key:class, value:Component
      */
     private Map<Class<? extends Component>, Component> componentsMap = new LinkedHashMap<>();
-    private List<Object> componentOrderList = new ArrayList<>();
 
     private GateSessionService sessionService = new GateSessionService();
     private NodeSessionService nodeSessionService = new NodeSessionService();
@@ -182,12 +180,13 @@ public class Litchi {
     }
 
     public Litchi addComponent(Component component) {
-        this.componentOrderList.add(component);
+        this.componentsMap.put(component.getClass(), component);
         return this;
     }
 
     public Litchi addComponent(ComponentFeature<Component> feature) {
-        this.componentOrderList.add(feature);
+        Component c = feature.createComponent(this);
+        this.componentsMap.put(c.getClass(), c);
         return this;
     }
 
@@ -267,23 +266,18 @@ public class Litchi {
      * @param callback
      */
     public void start(ComponentCallback... callback) {
-
         // order by execute component->start()
-        componentOrderList.forEach(item -> {
-            Component c = judgeComponent(item);
+        for (Component c : this.componentsMap.values()) {
             logger.debug("[component->start()] name = {}", c.name());
             c.start();
-            this.componentsMap.put(c.getClass(), c);
-        });
-
-        //clear temp list
-        componentOrderList.clear();
+        }
 
         // execute component->afterStart()
-        this.componentsMap.forEach((key, value) -> {
-            logger.debug("[component->afterStart()] name = {}", value.name());
-            value.afterStart();
-        });
+
+        for (Component c : this.componentsMap.values()) {
+            logger.debug("[component->afterStart()] name = {}", c.name());
+            c.afterStart();
+        }
 
         // execute callback
         for (ComponentCallback c : callback) {
@@ -306,28 +300,34 @@ public class Litchi {
                 this.schedule.shutdown();
             }
 
-            this.componentsMap.forEach((name, component) -> {
-                try {
-                    if (!(component instanceof NetComponent)) {
-                        logger.info("component:{} is stopping.", name);
-                        component.stop();
-                        logger.info("component:{} is stopped!", name);
-                    }
-                } catch (Exception e) {
-                    logger.error("{}", e);
-                }
-            });
 
-            this.componentsMap.forEach((name, component) -> {
+            //reverse process component list
+            List<Component> components = new ArrayList<>(this.componentsMap.values());
+            Collections.reverse(components);
+
+            //beforeStop()
+            for (Component c : components) {
                 try {
-                    if (component instanceof NetComponent) {
-                        logger.info("NetComponent:{} is stopping.", name);
-                        component.stop();
-                        logger.info("NetComponent:{} is stopped!", name);
-                    }
+                    logger.debug("[component->beforeStop()] name = {}", c.name());
+                    c.beforeStop();
                 } catch (Exception e) {
                     logger.error("{}", e);
                 }
+            }
+
+            //stop()
+            for (Component c : components) {
+                try {
+                    logger.debug("[component->stop()] name = {}", c.name());
+                    c.stop();
+                } catch (Exception e) {
+                    logger.error("{}", e);
+                }
+            }
+
+            //倒着停服务
+            this.componentsMap.forEach((name, component) -> {
+
             });
 
             logger.info("current node info: {}", this.currentNode);
