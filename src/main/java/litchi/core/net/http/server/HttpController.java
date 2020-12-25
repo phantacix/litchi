@@ -42,9 +42,9 @@ public abstract class HttpController {
     protected RouteResult<RouteAction> routeResult;
     private boolean enableCookies;
 
-    private Map<String, String> postMaps = new HashMap<>();
+    protected Map<String, String> postMaps = new HashMap<>();
 
-    private Map<String, Cookie> cookieMaps = new HashMap<>();
+    protected Map<String, Cookie> cookieMaps = new HashMap<>();
 
     private FileUpload fileUpload;
 
@@ -113,6 +113,15 @@ public abstract class HttpController {
 
     public HttpMethod method() {
         return request.method();
+    }
+
+
+    public <T> T get(String name, T defaultValue,boolean checkPost) {
+        T result = get(name, defaultValue);
+        if (checkPost && result == defaultValue) {
+            result = post(name, defaultValue);
+        }
+        return result;
     }
 
     public <T> T get(String name, T defaultValue) {
