@@ -40,11 +40,9 @@ public abstract class HttpController {
     protected Channel channel;
     protected FullHttpRequest request;
     protected RouteResult<RouteAction> routeResult;
-    private boolean enableCookies;
-
     protected Map<String, String> postMaps = new HashMap<>();
-
     protected Map<String, Cookie> cookieMaps = new HashMap<>();
+	private boolean enableCookies;
 
     private FileUpload fileUpload;
 
