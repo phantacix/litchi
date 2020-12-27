@@ -29,7 +29,7 @@ QQ群:**193673074**
 ### 线程模型
 ![avatar](https://gitee.com/phantacix/litchi/raw/5f62b7a688daf193d10802883463a10515a84f00/docs/images/thread_mode.png)
 
-点击看图(https://gitee.com/phantacix/litchi/raw/5f62b7a688daf193d10802883463a10515a84f00/docs/images/thread_mode.png)
+[点击看图](https://gitee.com/phantacix/litchi/raw/5f62b7a688daf193d10802883463a10515a84f00/docs/images/thread_mode.png)
 
 
 ## 构建环境
