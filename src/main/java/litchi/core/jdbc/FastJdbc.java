@@ -86,7 +86,7 @@ public class FastJdbc implements Component {
 //      int minIdle = config.getInteger("minIdle");
 
         HikariDataSource ds = new HikariDataSource();
-        String jdbc = "jdbc:mysql://%s/%s?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC";
+        String jdbc = "jdbc:mysql://%s/%s?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false";
 
         ds.setJdbcUrl(String.format(jdbc, host, dbName));
         ds.setUsername(userName);
