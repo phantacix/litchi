@@ -28,207 +28,222 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 public class Http {
-	private static final Logger LOGGER = LoggerFactory.getLogger(Http.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Http.class);
 
-	private int connectTimeout = 5000; // 5s
-	private int readTimeout = 5000; // 5s
-	private int writeTimeout = 5000; // 5s
+    private int connectTimeout = 5000; // 5s
+    private int readTimeout = 5000; // 5s
+    private int writeTimeout = 5000; // 5s
 
-	private OkHttpClient client;
-	private OkHttpClient httpsClient;
+    private OkHttpClient client;
+    private OkHttpClient httpsClient;
 
-	private static Http instance;
+    private static Http instance;
 
-	private Http() {
-		initHttp();
-	}
+    private Http() {
+        initHttp();
+    }
 
-	private void initHttp() {
-		OkHttpClient.Builder builder = new OkHttpClient.Builder();
-		builder.connectTimeout(connectTimeout, TimeUnit.MILLISECONDS);
-		builder.readTimeout(readTimeout, TimeUnit.MILLISECONDS);
-		builder.writeTimeout(writeTimeout, TimeUnit.MILLISECONDS);
+    private void initHttp() {
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.connectTimeout(connectTimeout, TimeUnit.MILLISECONDS);
+        builder.readTimeout(readTimeout, TimeUnit.MILLISECONDS);
+        builder.writeTimeout(writeTimeout, TimeUnit.MILLISECONDS);
 
-		SSLUtils.SSLParams ssl = SSLUtils.getSslSocketFactory(null, null, null);
-		builder.sslSocketFactory(ssl.sSLSocketFactory, ssl.trustManager);
+        SSLUtils.SSLParams ssl = SSLUtils.getSslSocketFactory(null, null, null);
+        builder.sslSocketFactory(ssl.sSLSocketFactory, ssl.trustManager);
 
-		// Dispatcher dispatcher = new Dispatcher();
-		// dispatcher.setMaxRequests(128);
-		// dispatcher.setMaxRequestsPerHost(12);
-		// builder.dispatcher(dispatcher);
+        // Dispatcher dispatcher = new Dispatcher();
+        // dispatcher.setMaxRequests(128);
+        // dispatcher.setMaxRequestsPerHost(12);
+        // builder.dispatcher(dispatcher);
 
-		this.client = builder.build();
-	}
+        this.client = builder.build();
+    }
 
-	private void initHttps() {
-		SSLUtils.SSLParams ssl = SSLUtils.getSslSocketFactory(null, null, null);
+    private void initHttps() {
+        SSLUtils.SSLParams ssl = SSLUtils.getSslSocketFactory(null, null, null);
 
-		this.httpsClient = new OkHttpClient.Builder()
-				.connectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
-				.readTimeout(readTimeout, TimeUnit.MILLISECONDS)
-				.writeTimeout(writeTimeout, TimeUnit.MILLISECONDS)
-				.hostnameVerifier(new HostnameVerifier() {
+        this.httpsClient = new OkHttpClient.Builder()
+                .connectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
+                .readTimeout(readTimeout, TimeUnit.MILLISECONDS)
+                .writeTimeout(writeTimeout, TimeUnit.MILLISECONDS)
+                .hostnameVerifier((hostname, session) -> true)
+                .sslSocketFactory(ssl.sSLSocketFactory, ssl.trustManager)
+                .build();
+    }
 
-					@Override
-					public boolean verify(String hostname, SSLSession session) {
-						return true;
-					}
-				})
-				.sslSocketFactory(ssl.sSLSocketFactory, ssl.trustManager)
-				.build();
-	}
+    public static Http instance() {
+        if (instance == null) {
+            instance = new Http();
+        }
+        return instance;
+    }
 
-	public static Http instance() {
-		if (instance == null) {
-			instance = new Http();
-		}
-		return instance;
-	}
+    public static String get(String url) {
+        return get(url, null);
+    }
 
-	public static String get(String url) {
-		return get(url, null);
-	}
+    public static String get(String url, Map<String, String> params) {
+        Request.Builder reqBuilder = new Request.Builder();
+        reqBuilder.url(concatUrl(url, params));
 
-	public static String get(String url, Map<String, String> params) {
-		Request.Builder reqBuilder = new Request.Builder();
-		reqBuilder.url(concatUrl(url, params));
+        return instance().execute(reqBuilder.build());
+    }
 
-		return instance().execute(reqBuilder.build());
-	}
+    public static void get(String url, Map<String, String> params, StringCallback callback) {
+        Request.Builder reqBuilder = new Request.Builder();
+        reqBuilder.url(concatUrl(url, params));
 
-	public static void get(String url, Map<String, String> params, StringCallback callback) {
-		Request.Builder reqBuilder = new Request.Builder();
-		reqBuilder.url(concatUrl(url, params));
+        instance().execute(reqBuilder.build(), callback);
+    }
 
-		instance().execute(reqBuilder.build(), callback);
-	}
+    public static String post(String url, Map<String, String> params) {
+        Request.Builder reqBuilder = new Request.Builder();
+        reqBuilder.url(url);
 
-	public static String post(String url, Map<String, String> params) {
-		Request.Builder reqBuilder = new Request.Builder();
-		reqBuilder.url(url);
+        FormBody.Builder formBuilder = new FormBody.Builder();
+        for (Entry<String, String> entry : params.entrySet()) {
+            formBuilder.add(entry.getKey(), entry.getValue());
+        }
+        reqBuilder.post(formBuilder.build());
 
-		FormBody.Builder formBuilder = new FormBody.Builder();
-		for (Entry<String, String> entry : params.entrySet()) {
-			formBuilder.add(entry.getKey(), entry.getValue());
-		}
-		reqBuilder.post(formBuilder.build());
+        return instance().execute(reqBuilder.build());
+    }
 
-		return instance().execute(reqBuilder.build());
-	}
+    public static String postBody(String url, String body) {
+        Request.Builder reqBuilder = new Request.Builder();
+        reqBuilder.url(url);
+        reqBuilder.post(RequestBody.create(null, body));
+        return instance().execute(reqBuilder.build());
+    }
 
-	public static String postBody(String url, String body) {
-		Request.Builder reqBuilder = new Request.Builder();
-		reqBuilder.url(url);
-		reqBuilder.post(RequestBody.create(null, body));
-		return instance().execute(reqBuilder.build());
-	}
+    public static String postBody(String url, FormBody formBody) {
+        Request request = new Request.Builder()
+                .url(url)
+                .post(formBody)
+                .build();
+        try {
+            String text = instance().execute(request);
+            return text;
+        } catch (Exception e) {
+            LOGGER.error("", e);
+        }
+        return null;
+    }
 
-	public static String postBody(String url, FormBody formBody) {
-		Request request = new Request.Builder()
-				.url(url)
-				.post(formBody)
-				.build();
-		try {
-			String text = instance().execute(request);
-			return text;
-		} catch (Exception e) {
-			LOGGER.error("", e);
-		}
-		return null;
-	}
-	
-	public static InputStream postBodyAndGetStream(String url, String body) {
-		Request.Builder reqBuilder = new Request.Builder();
-		reqBuilder.url(url);
-		reqBuilder.post(RequestBody.create(null, body));
-		return instance().executeAndGetStream(reqBuilder.build());
-	}
+    public static InputStream postBodyAndGetStream(String url, String body) {
+        Request.Builder reqBuilder = new Request.Builder();
+        reqBuilder.url(url);
+        reqBuilder.post(RequestBody.create(null, body));
+        return instance().executeAndGetStream(reqBuilder.build());
+    }
 
-	public static void post(String url, Map<String, String> params, StringCallback callback) {
-		Request.Builder reqBuilder = new Request.Builder();
-		reqBuilder.url(url);
+    public static void post(String url, Map<String, String> params, StringCallback callback) {
+        Request.Builder reqBuilder = new Request.Builder();
+        reqBuilder.url(url);
 
-		FormBody.Builder formBuilder = new FormBody.Builder();
-		for (Entry<String, String> entry : params.entrySet()) {
-			formBuilder.add(entry.getKey(), entry.getValue());
-		}
-		reqBuilder.post(formBuilder.build());
+        FormBody.Builder formBuilder = new FormBody.Builder();
+        for (Entry<String, String> entry : params.entrySet()) {
+            formBuilder.add(entry.getKey(), entry.getValue());
+        }
+        reqBuilder.post(formBuilder.build());
 
-		instance().execute(reqBuilder.build(), callback);
-	}
+        instance().execute(reqBuilder.build(), callback);
+    }
 
-	public static String concatUrl(String url, Map<String, String> data) {
-		if (data == null) {
-			return url;
-		}
+    public static String concatUrl(String url, Map<String, String> data) {
+        if (data == null) {
+            return url;
+        }
 
-		try {
-			StringBuilder sb = new StringBuilder();
-			for (Entry<String, String> entry : data.entrySet()) {
-				sb.append("&" + entry.getKey() + "=" + URLEncoder.encode(entry.getValue(), "utf-8"));
-			}
+        try {
+            StringBuilder sb = new StringBuilder();
+            for (Entry<String, String> entry : data.entrySet()) {
+                sb.append("&" + entry.getKey() + "=" + URLEncoder.encode(entry.getValue(), "utf-8"));
+            }
 
-			if (sb.length() < 1) {
-				return url;
-			}
+            if (sb.length() < 1) {
+                return url;
+            }
 
-			String prefix = sb.substring(1).toString();
-			if (url.indexOf("?") < 1) {
-				url += "?";
-			}
+            String prefix = sb.substring(1).toString();
+            if (url.indexOf("?") < 1) {
+                url += "?";
+            }
 
-			return url + prefix;
-		} catch (Exception ex) {
-			LOGGER.warn("{}", ex);
-		}
-		return url;
-	}
+            return url + prefix;
+        } catch (Exception ex) {
+            LOGGER.warn("{}", ex);
+        }
+        return url;
+    }
 
-	public String execute(Request request) {
-		final Call call = instance().client.newCall(request);
-		Response response = null;
-		try {
-			response = call.execute();
-			ResponseBody body = response.body();
-			return body.string();
-		} catch (IOException e) {
-			LOGGER.error("{}", e);
-		} finally {
-			if (response != null) {
-				response.close();
-			}
-		}
-		return "";
-	}
+    public static void getExecute(String url, Map<String, String> params, Callback callback) {
+        Request.Builder request = new Request.Builder();
+        request.url(concatUrl(url, params));
+        final Call call = instance().client.newCall(request.build());
+        call.enqueue(callback);
+    }
 
-	public InputStream executeAndGetStream(Request request) {
-		final Call call = instance().client.newCall(request);
-		
-		Response response = null;
-		try {
-			response = call.execute();
-			ResponseBody body = response.body();
-			return body.byteStream();
-		} catch (IOException e) {
-			LOGGER.error("{}", e);
-		}
-		return null;
-	}
+    public static void postExecute(String url, Map<String, String> params, Callback callback) {
+        Request.Builder reqBuilder = new Request.Builder();
+        reqBuilder.url(url);
 
-	public void execute(Request request, StringCallback callback) {
-		final Call call = instance().client.newCall(request);
-		call.enqueue(new Callback() {
+        FormBody.Builder formBuilder = new FormBody.Builder();
+        for (Entry<String, String> entry : params.entrySet()) {
+            formBuilder.add(entry.getKey(), entry.getValue());
+        }
+        reqBuilder.post(formBuilder.build());
 
-			@Override
-			public void onResponse(Call paramCall, Response paramResponse) throws IOException {
-				callback.completed(paramResponse.body().string());
-			}
+        final Call call = instance().client.newCall(reqBuilder.build());
+        call.enqueue(callback);
+    }
 
-			@Override
-			public void onFailure(Call paramCall, IOException ex) {
-				callback.failed(ex);
-			}
-		});
-	}
+    public String execute(Request request) {
+        final Call call = instance().client.newCall(request);
+        Response response = null;
+        try {
+            response = call.execute();
+            ResponseBody body = response.body();
+            return body.string();
+        } catch (IOException e) {
+            LOGGER.error("{}", e);
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+        }
+        return "";
+    }
+
+    public InputStream executeAndGetStream(Request request) {
+        final Call call = instance().client.newCall(request);
+
+        Response response = null;
+        try {
+            response = call.execute();
+            ResponseBody body = response.body();
+            return body.byteStream();
+        } catch (IOException e) {
+            LOGGER.error("{}", e);
+        }
+        return null;
+    }
+
+    public void execute(Request request, StringCallback callback) {
+        final Call call = instance().client.newCall(request);
+        call.enqueue(new Callback() {
+
+            @Override
+            public void onResponse(Call paramCall, Response paramResponse) throws IOException {
+                callback.completed(paramResponse.body().string());
+            }
+
+            @Override
+            public void onFailure(Call paramCall, IOException ex) {
+                callback.failed(ex);
+            }
+        });
+    }
 
 }
