@@ -6,6 +6,7 @@
 package litchi.core.jdbc.column;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -64,6 +65,7 @@ public class ColumnContext {
         // register(new BlobTypeColumn(), ProtoTypeEntity.class);
         register(new JsonColumn(), JsonEntity.class);
         register(new DateColumn(), Date.class);
+        register(new TimestampColumn(), Timestamp.class);
 
         LOGGER.info("ColumnContext parser start complete!");
     }
