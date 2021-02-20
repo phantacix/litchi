@@ -42,7 +42,7 @@ public abstract class HttpController {
     protected RouteResult<RouteAction> routeResult;
     protected Map<String, String> postMaps = new HashMap<>();
     protected Map<String, Cookie> cookieMaps = new HashMap<>();
-	private boolean enableCookies;
+    private boolean enableCookies;
 
     private FileUpload fileUpload;
 
@@ -66,6 +66,15 @@ public abstract class HttpController {
 
     public FileUpload fileUpload() {
         return fileUpload;
+    }
+
+    public String getBody() {
+        if (request == null || request.content().capacity() < 1) {
+            return "";
+        }
+
+        request.content().resetReaderIndex();
+        return request.content().toString(CharsetUtil.UTF_8);
     }
 
     public void init(Channel channel, FullHttpRequest request, RouteResult<RouteAction> routeResult, boolean enableCookies) {
@@ -114,7 +123,7 @@ public abstract class HttpController {
     }
 
 
-    public <T> T get(String name, T defaultValue,boolean checkPost) {
+    public <T> T get(String name, T defaultValue, boolean checkPost) {
         T result = get(name, defaultValue);
         if (checkPost && result == defaultValue) {
             result = post(name, defaultValue);
