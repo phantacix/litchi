@@ -15,17 +15,9 @@ import java.util.concurrent.TimeUnit;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
 
+import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.FormBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 
 public class Http {
     private static final Logger LOGGER = LoggerFactory.getLogger(Http.class);
@@ -117,10 +109,10 @@ public class Http {
         return instance().execute(reqBuilder.build());
     }
 
-    public static String postBody(String url, FormBody formBody) {
+    public static String postBody(String url, RequestBody requestBody) {
         Request request = new Request.Builder()
                 .url(url)
-                .post(formBody)
+                .post(requestBody)
                 .build();
         try {
             String text = instance().execute(request);
