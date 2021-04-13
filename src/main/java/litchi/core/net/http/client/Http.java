@@ -5,6 +5,7 @@
 //-------------------------------------------------
 package litchi.core.net.http.client;
 
+import litchi.core.common.utils.StringUtils;
 import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,11 +42,6 @@ public class Http {
         builder.sslSocketFactory(ssl.sSLSocketFactory, ssl.trustManager);
         builder.hostnameVerifier((hostname, session) -> true);
 
-        // Dispatcher dispatcher = new Dispatcher();
-        // dispatcher.setMaxRequests(128);
-        // dispatcher.setMaxRequestsPerHost(12);
-        // builder.dispatcher(dispatcher);
-
         this.client = builder.build();
     }
 
@@ -80,7 +76,9 @@ public class Http {
 
         FormBody.Builder formBuilder = new FormBody.Builder();
         for (Entry<String, String> entry : params.entrySet()) {
-            formBuilder.add(entry.getKey(), entry.getValue());
+            if (entry.getKey() != null && entry.getValue() != null) {
+                formBuilder.add(entry.getKey(), entry.getValue());
+            }
         }
         reqBuilder.post(formBuilder.build());
 
@@ -121,7 +119,9 @@ public class Http {
 
         FormBody.Builder formBuilder = new FormBody.Builder();
         for (Entry<String, String> entry : params.entrySet()) {
-            formBuilder.add(entry.getKey(), entry.getValue());
+            if (entry.getKey() != null && entry.getValue() != null) {
+                formBuilder.add(entry.getKey(), entry.getValue());
+            }
         }
         reqBuilder.post(formBuilder.build());
 
@@ -136,14 +136,16 @@ public class Http {
         try {
             StringBuilder sb = new StringBuilder();
             for (Entry<String, String> entry : data.entrySet()) {
-                sb.append("&" + entry.getKey() + "=" + URLEncoder.encode(entry.getValue(), "utf-8"));
+                if(entry.getKey() !=null && entry.getValue() != null) {
+                    sb.append("&" + entry.getKey() + "=" + URLEncoder.encode(entry.getValue(), "utf-8"));
+                }
             }
 
             if (sb.length() < 1) {
                 return url;
             }
 
-            String prefix = sb.substring(1).toString();
+            String prefix = sb.substring(1);
             if (url.indexOf("?") < 1) {
                 url += "?";
             }
