@@ -5,19 +5,16 @@
 //-------------------------------------------------
 package litchi.core.net.http.client;
 
+import okhttp3.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLSession;
-
-import okhttp3.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Http {
     private static final Logger LOGGER = LoggerFactory.getLogger(Http.class);
@@ -27,7 +24,6 @@ public class Http {
     private int writeTimeout = 5000; // 5s
 
     private OkHttpClient client;
-    private OkHttpClient httpsClient;
 
     private static Http instance;
 
@@ -43,6 +39,7 @@ public class Http {
 
         SSLUtils.SSLParams ssl = SSLUtils.getSslSocketFactory(null, null, null);
         builder.sslSocketFactory(ssl.sSLSocketFactory, ssl.trustManager);
+        builder.hostnameVerifier((hostname, session) -> true);
 
         // Dispatcher dispatcher = new Dispatcher();
         // dispatcher.setMaxRequests(128);
@@ -50,18 +47,6 @@ public class Http {
         // builder.dispatcher(dispatcher);
 
         this.client = builder.build();
-    }
-
-    private void initHttps() {
-        SSLUtils.SSLParams ssl = SSLUtils.getSslSocketFactory(null, null, null);
-
-        this.httpsClient = new OkHttpClient.Builder()
-                .connectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
-                .readTimeout(readTimeout, TimeUnit.MILLISECONDS)
-                .writeTimeout(writeTimeout, TimeUnit.MILLISECONDS)
-                .hostnameVerifier((hostname, session) -> true)
-                .sslSocketFactory(ssl.sSLSocketFactory, ssl.trustManager)
-                .build();
     }
 
     public static Http instance() {
