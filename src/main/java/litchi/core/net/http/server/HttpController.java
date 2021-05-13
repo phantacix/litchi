@@ -84,8 +84,8 @@ public abstract class HttpController {
         this.enableCookies = enableCookies;
 
         if (this.method() == HttpMethod.POST) {
+            HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(request);
             try {
-                HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(request);
                 decoder.offer(request);
                 List<InterfaceHttpData> paramsList = decoder.getBodyHttpDatas();
                 for (InterfaceHttpData httpData : paramsList) {
@@ -101,6 +101,8 @@ public abstract class HttpController {
                 }
             } catch (Exception ex) {
                 LOGGER.error("{}", ex);
+            } finally {
+                decoder.destroy();
             }
         }
 
