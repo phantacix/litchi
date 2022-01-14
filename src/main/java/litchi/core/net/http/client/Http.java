@@ -5,7 +5,6 @@
 //-------------------------------------------------
 package litchi.core.net.http.client;
 
-import litchi.core.common.utils.StringUtils;
 import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +19,9 @@ import java.util.concurrent.TimeUnit;
 public class Http {
     private static final Logger LOGGER = LoggerFactory.getLogger(Http.class);
 
-    private int connectTimeout = 5000; // 5s
-    private int readTimeout = 5000; // 5s
-    private int writeTimeout = 5000; // 5s
+    private static int CONNECT_TIMEOUT = 3000; // 5s
+    private static int READ_TIMEOUT = 3000; // 5s
+    private static int WRITE_TIMEOUT = 3000; // 5s
 
     private OkHttpClient client;
 
@@ -34,15 +33,21 @@ public class Http {
 
     private void initHttp() {
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        builder.connectTimeout(connectTimeout, TimeUnit.MILLISECONDS);
-        builder.readTimeout(readTimeout, TimeUnit.MILLISECONDS);
-        builder.writeTimeout(writeTimeout, TimeUnit.MILLISECONDS);
+        builder.connectTimeout(CONNECT_TIMEOUT, TimeUnit.MILLISECONDS);
+        builder.readTimeout(READ_TIMEOUT, TimeUnit.MILLISECONDS);
+        builder.writeTimeout(WRITE_TIMEOUT, TimeUnit.MILLISECONDS);
 
         SSLUtils.SSLParams ssl = SSLUtils.getSslSocketFactory(null, null, null);
         builder.sslSocketFactory(ssl.sSLSocketFactory, ssl.trustManager);
         builder.hostnameVerifier((hostname, session) -> true);
 
         this.client = builder.build();
+    }
+
+    public static void setTimeout(int connectTimeout, int readTimeout, int writeTimeout) {
+        CONNECT_TIMEOUT = connectTimeout;
+        READ_TIMEOUT = readTimeout;
+        WRITE_TIMEOUT = writeTimeout;
     }
 
     public static Http instance() {
@@ -136,7 +141,7 @@ public class Http {
         try {
             StringBuilder sb = new StringBuilder();
             for (Entry<String, String> entry : data.entrySet()) {
-                if(entry.getKey() !=null && entry.getValue() != null) {
+                if (entry.getKey() != null && entry.getValue() != null) {
                     sb.append("&" + entry.getKey() + "=" + URLEncoder.encode(entry.getValue(), "utf-8"));
                 }
             }
@@ -198,7 +203,7 @@ public class Http {
     public InputStream executeAndGetStream(Request request) {
         final Call call = instance().client.newCall(request);
 
-        Response response = null;
+        Response response;
         try {
             response = call.execute();
             ResponseBody body = response.body();
