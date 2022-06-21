@@ -9,6 +9,7 @@ import litchi.core.common.thread.NamedThreadFactory;
 import litchi.core.common.utils.DateUtils;
 import litchi.core.common.thread.NamedThreadFactory;
 import litchi.core.common.utils.DateUtils;
+import litchi.core.common.utils.ServerTime;
 
 import java.util.Calendar;
 import java.util.concurrent.Executors;
@@ -25,7 +26,7 @@ public class Schedule {
     public static void main(String[] args) {
         Schedule schedule = new Schedule(5, "test");
         schedule.addEverySecond(() -> {
-            System.out.println(DateUtils.formatTime(System.currentTimeMillis(), DateUtils.PATTERN_NORMAL + ",SSS"));
+            System.out.println(DateUtils.formatTime(ServerTime.timeMillis(), DateUtils.PATTERN_NORMAL + ",SSS"));
         }, 1);
     }
 

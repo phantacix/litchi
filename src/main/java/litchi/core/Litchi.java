@@ -7,6 +7,7 @@ import litchi.core.common.extend.ObjectReference;
 import litchi.core.common.logback.LogUtils;
 import litchi.core.common.utils.JsonUtils;
 import litchi.core.common.utils.PathUtils;
+import litchi.core.common.utils.ServerTime;
 import litchi.core.components.Component;
 import litchi.core.components.ComponentCallback;
 import litchi.core.components.ComponentFeature;
@@ -55,7 +56,7 @@ public class Litchi {
      */
     private JSONObject litchiConfig;
 
-    private long startTime = System.currentTimeMillis();
+    private long startTime = ServerTime.timeMillis();
 
     /**
      * 所有配置的服务器信息
@@ -288,13 +289,13 @@ public class Litchi {
         shutdownHook();
 
         logger.info(currentNode().toString());
-        logger.warn("========== {} launcher complete runTime:{}ms ==========", this.getNodeId(), System.currentTimeMillis() - this.startTime);
+        logger.warn("========== {} launcher complete runTime:{}ms ==========", this.getNodeId(), ServerTime.timeMillis() - this.startTime);
     }
 
     private void shutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 
-            long stopTime = System.currentTimeMillis();
+            long stopTime = ServerTime.timeMillis();
 
             if (this.schedule != null) {
                 this.schedule.shutdown();
@@ -331,7 +332,7 @@ public class Litchi {
             });
 
             logger.info("current node info: {}", this.currentNode);
-            logger.info("========== {} server has stopped. time:{}ms ==========", this.getNodeId(), (System.currentTimeMillis() - stopTime));
+            logger.info("========== {} server has stopped. time:{}ms ==========", this.getNodeId(), (ServerTime.timeMillis() - stopTime));
         }));
     }
 

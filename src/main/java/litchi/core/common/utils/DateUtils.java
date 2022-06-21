@@ -262,7 +262,7 @@ public class DateUtils {
 	 * @return
 	 */
 	public static long getCurrentSecond() {
-		return System.currentTimeMillis(); // 转换为秒
+		return ServerTime.timeMillis(); // 转换为秒
 	}
 
 	/**
@@ -284,7 +284,7 @@ public class DateUtils {
 	 * @return
 	 */
 	public static boolean beyondTheTime(long startTime, long timeInterval) {
-		return System.currentTimeMillis() - startTime >= timeInterval;
+		return ServerTime.timeMillis() - startTime >= timeInterval;
 	}
 
 	/**
@@ -306,7 +306,7 @@ public class DateUtils {
 	 * @return
 	 */
 	public static boolean isActiveTime(long startTime, long endTime) {
-		long now = System.currentTimeMillis();
+		long now = ServerTime.timeMillis();
 		return startTime < now && now < endTime;
 	}
 
@@ -344,7 +344,7 @@ public class DateUtils {
 	 * @return
 	 */
 	public static int getNowInSecondes() {
-		return (int) (System.currentTimeMillis() / 1000);
+		return (int) (ServerTime.timeMillis() / 1000);
 	}
 
 	/**
@@ -780,11 +780,11 @@ public class DateUtils {
 	 * @return
 	 */
 	public static int getNow() {
-		return (int) (System.currentTimeMillis() / 1000);
+		return (int) (ServerTime.timeMillis() / 1000);
 	}
 
 	public static long getNowMillis() {
-		return System.currentTimeMillis();
+		return ServerTime.timeMillis();
 	}
 
 	/**
@@ -815,7 +815,7 @@ public class DateUtils {
 	public static byte[] getNowBytes() throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(baos);
-		dos.writeLong(System.currentTimeMillis());
+		dos.writeLong(ServerTime.timeMillis());
 		return baos.toByteArray();
 	}
 
@@ -1131,7 +1131,7 @@ public class DateUtils {
 	}
 	
 	public static Date getDayStart() {
-		return getDayStart(System.currentTimeMillis());
+		return getDayStart(ServerTime.timeMillis());
 	}
 	
 	public static Calendar getTodayStart() {

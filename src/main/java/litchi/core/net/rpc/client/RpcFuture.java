@@ -5,6 +5,7 @@
 //-------------------------------------------------
 package litchi.core.net.rpc.client;
 
+import litchi.core.common.utils.ServerTime;
 import litchi.core.net.rpc.RpcConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,7 @@ public class RpcFuture<R> implements Future<R> {
 	
 	private boolean await(long timeout, TimeUnit unit) {
 		long timeoutMillis = unit.toMillis(timeout);
-		long endTime = System.currentTimeMillis() + timeoutMillis;
+		long endTime = ServerTime.timeMillis() + timeoutMillis;
 		synchronized (this) {
 			if (done)
 				return done;
@@ -34,7 +35,7 @@ public class RpcFuture<R> implements Future<R> {
 			try {
 				while (!done) {
 					wait(timeoutMillis);
-					if (endTime < System.currentTimeMillis() && !done) {
+					if (endTime < ServerTime.timeMillis() && !done) {
 						exception = new TimeoutException("time out");
 						break;
 					}

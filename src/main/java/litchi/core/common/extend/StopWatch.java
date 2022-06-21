@@ -5,6 +5,8 @@
 //-------------------------------------------------
 package litchi.core.common.extend;
 
+import litchi.core.common.utils.ServerTime;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -26,11 +28,11 @@ public class StopWatch {
 	}
 	
 	public void start() {
-		this.startTime = System.currentTimeMillis();
+		this.startTime = ServerTime.timeMillis();
 	}
 
 	public void stop() {
-		this.endTime = System.currentTimeMillis();
+		this.endTime = ServerTime.timeMillis();
 	}
 	
 	public long runTime() {

@@ -5,6 +5,7 @@
 //-------------------------------------------------
 package litchi.core.net.rpc.packet;
 
+import litchi.core.common.utils.ServerTime;
 import litchi.core.common.utils.StringUtils;
 
 import java.util.Arrays;
@@ -40,7 +41,7 @@ public class RequestPacket {
 
     public RequestPacket() {
         this.sequenceId = sequenceBuilder.getAndIncrement();
-        this.buildTime = System.currentTimeMillis();
+        this.buildTime = ServerTime.timeMillis();
     }
 
     public static RequestPacket valueOfRPC(String nodeType, String className, String methodName, Object[] args) {

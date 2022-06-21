@@ -6,6 +6,7 @@
 package litchi.core.router;
 
 import litchi.core.Litchi;
+import litchi.core.common.utils.ServerTime;
 import litchi.core.net.rpc.packet.RequestPacket;
 import litchi.core.net.rpc.packet.RpcCallbackPacket;
 import litchi.core.net.session.NettySession;
@@ -43,7 +44,7 @@ public abstract class DefaultRpcRoute implements BaseRoute<RequestPacket> {
             LOGGER.error("", ex);
         } finally {
             if (RPC_LOGGER.isInfoEnabled()) {
-                long durationTime = System.currentTimeMillis() - packet.buildTime;
+                long durationTime = ServerTime.timeMillis() - packet.buildTime;
                 if (durationTime > 50) {
                     RPC_LOGGER.warn("<---------- [rpc]client -> invoke complete. duration time:{}ms ---------->", durationTime);
                     RPC_LOGGER.warn("packet = {}", packet);

@@ -13,6 +13,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import litchi.core.common.utils.ServerTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +63,7 @@ public class DBEntity2File {
 		sb.append(fileName);
 		sb.append("-");
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
-		sb.append(simpleDateFormat.format(new Date(System.currentTimeMillis())));
+		sb.append(simpleDateFormat.format(new Date(ServerTime.timeMillis())));
 		sb.append(backupExtension);
 
 		FileWriter fw = null;

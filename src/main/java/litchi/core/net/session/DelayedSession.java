@@ -5,6 +5,8 @@
 //-------------------------------------------------
 package litchi.core.net.session;
 
+import litchi.core.common.utils.ServerTime;
+
 import java.util.Date;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
@@ -52,7 +54,7 @@ public class DelayedSession implements Delayed {
 
     @Override
     public long getDelay(TimeUnit unit) {
-        return start + delay - System.currentTimeMillis();
+        return start + delay - ServerTime.timeMillis();
     }
 
     public NettySession getSession() {

@@ -10,17 +10,17 @@ package litchi.core.common.utils;
  * Date:   2018/4/8
  */
 public class ServerTime {
-	private static long offset = 0;
+	private static long timeOffset = 0;
 
 	public static long timeSecond() {
-		return (System.currentTimeMillis() + offset) / 1000;
+		return (System.currentTimeMillis() + timeOffset) / 1000;
 	}
 	
     public static long timeMillis() {
-        return System.currentTimeMillis() + offset;
+        return System.currentTimeMillis() + timeOffset;
     }
 
 	public static void offset(long offset) {
-		ServerTime.offset = offset;
+		timeOffset = offset;
 	}
 }

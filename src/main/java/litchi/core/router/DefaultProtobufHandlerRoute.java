@@ -7,6 +7,7 @@ package litchi.core.router;
 
 import com.google.protobuf.GeneratedMessageV3;
 import litchi.core.Litchi;
+import litchi.core.common.utils.ServerTime;
 import litchi.core.exception.ErrorCodeException;
 import litchi.core.net.rpc.packet.RequestPacket;
 import litchi.core.net.rpc.packet.ResponsePacket;
@@ -75,7 +76,7 @@ public abstract class DefaultProtobufHandlerRoute implements BaseRoute<RequestPa
             LOGGER.error("", ex);
         } finally {
             if (RPC_LOGGER.isInfoEnabled()) {
-                long durationTime = System.currentTimeMillis() - packet.buildTime;
+                long durationTime = ServerTime.timeMillis() - packet.buildTime;
                 if (durationTime > 50) {
                     RPC_LOGGER.warn("<---------- [handler]client -> invoke complete. duration time:{}ms ---------->", durationTime);
                     RPC_LOGGER.warn("packet = {}", packet);

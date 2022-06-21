@@ -9,6 +9,7 @@ import com.alibaba.fastjson.JSONObject;
 import litchi.core.Constants;
 import litchi.core.Litchi;
 import litchi.core.common.thread.NamedScheduleExecutor;
+import litchi.core.common.utils.ServerTime;
 import litchi.core.jdbc.FastJdbc;
 import litchi.core.jdbc.table.Table;
 import org.slf4j.Logger;
@@ -267,8 +268,8 @@ public class DBQueueComponent implements DBQueue {
         // 定时入库线程
         executor.scheduleAtFixedRate(() -> {
             try {
-                if (System.currentTimeMillis() > this.lastSubmitTime) {
-                    this.lastSubmitTime = System.currentTimeMillis() + this.tableSubmitFrequency;
+                if (ServerTime.timeMillis() > this.lastSubmitTime) {
+                    this.lastSubmitTime = ServerTime.timeMillis() + this.tableSubmitFrequency;
                     consumeTable();
                 }
             } catch (Exception ex) {
